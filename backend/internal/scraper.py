@@ -26,8 +26,28 @@ from internal.db import get_client
 logger = logging.getLogger(__name__)
 
 BASE_URL  = "https://hr.parliament.gov.np"
-BILLS_URL = f"{BASE_URL}/en/bills?type=reg&ref=BILL"
+BILLS_URL = f"{BASE_URL}/en/bills?type=state&ref=BILL"
+
+# Map parliament's display status → our DB status values
+STATUS_MAP: dict[str, str] = {
+    "distribution to member":            "introduced",
+    "present in house of representatives": "introduced",
+    "general discussion":                 "general_discussion",
+    "discussion in house":                "general_discussion",
+    "discussion in committee":            "in_committee",
+    "report submitted by committee":      "committee_reported",
+    "passed by house":                    "passed",
+    "passed/return by national assembly": "passed_national_assembly",
+    "repassed":                           "repassed",
+    "authenticated":                      "authenticated",
+}
+
+def _map_status(raw: str) -> str:
+    """Normalise the parliament's display status to a DB-safe value."""
+    return STATUS_MAP.get(raw.strip().lower(), "introduced")
+
 HEADERS   = {
+
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -90,24 +110,29 @@ def _parse_bills_list(html: str) -> list[dict]:
         if len(cols) < 6:
             continue
         try:
-            # col[0]=Session  col[1]=RegNo  col[2]=Year(BS)
-            # col[3]=Title    col[4]=Ministry  col[5]=View link
+            # State page column layout:
+            # col[0]=Session  col[1]=RegNo  col[2]=Year(BS date)
+            # col[3]=Title    col[4]=Ministry  col[5]=Status  col[6]=View button
             session_txt = cols[0].get_text(strip=True)
             reg_no_txt  = cols[1].get_text(strip=True)
             year        = cols[2].get_text(strip=True)
             title_td    = cols[3]
             title       = title_td.get_text(strip=True)
             ministry    = cols[4].get_text(strip=True)
-            link_a      = title_td.find("a") or (cols[5].find("a") if len(cols) > 5 else None)
+            raw_status  = cols[5].get_text(strip=True) if len(cols) > 5 else ""
+            # View link is in col[6]; fallback to col[3] anchor
+            link_a      = (cols[6].find("a") if len(cols) > 6 else None) or title_td.find("a")
             detail_url  = urljoin(BASE_URL, link_a["href"]) if link_a else None
 
-            logger.debug(f"  Row {i}: reg={reg_no_txt!r} title={title[:50]!r} url={detail_url!r}")
+            logger.debug(f"  Row {i}: reg={reg_no_txt!r} status={raw_status!r} title={title[:40]!r}")
             bills.append({
                 "registration_no": int(reg_no_txt) if reg_no_txt.isdigit() else None,
                 "session":  int(session_txt) if session_txt.isdigit() else None,
                 "year_bs":  year,
                 "title":    title,
                 "ministry": ministry,
+                "parliament_status": raw_status,          # raw display text
+                "status":   _map_status(raw_status),      # normalised DB value
                 "source_url": detail_url,
             })
         except Exception as exc:
@@ -167,7 +192,8 @@ def _upsert_bill(data: dict) -> None:
         "title":              data.get("title"),
         "title_nepali":       data.get("title_nepali"),
         "ministry":           data.get("ministry"),
-        "status":             "introduced",
+        # Always write the latest status from the parliament website
+        "status":             data.get("status", "introduced"),
         "source_url":         data.get("source_url"),
         "category":           data.get("category"),
         "registration_no":    data.get("registration_no"),

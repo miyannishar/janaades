@@ -1,7 +1,19 @@
 // ─── Core Domain Types ────────────────────────────────────────────────────────
 
 export type Priority = 'high' | 'medium' | 'low'
-export type BillStatus = 'introduced' | 'committee' | 'floor_vote' | 'passed' | 'failed' | 'withdrawn'
+
+export type BillStatus =
+  | 'introduced'
+  | 'general_discussion'
+  | 'in_committee'
+  | 'committee_reported'
+  | 'passed'
+  | 'passed_national_assembly'
+  | 'repassed'
+  | 'authenticated'
+  | 'failed'
+  | 'withdrawn'
+
 export type ElectionType = 'FPTP' | 'PR'
 export type Chamber = 'HOR' | 'NA' // House of Representatives | National Assembly
 export type Province = 'Koshi' | 'Madhesh' | 'Bagmati' | 'Gandaki' | 'Lumbini' | 'Karnali' | 'Sudurpashchim'
@@ -54,26 +66,41 @@ export interface MP {
 
 export interface Bill {
   id: string
+  registration_no: number | null
   title: string
-  titleNepali?: string
-  ministry: string
+  title_nepali?: string
+  ministry: string | null
   status: BillStatus
-  priority: Priority
-  dateIntroduced: string
-  dateLastAction: string
-  summary: string
-  concerns: string[]
-  affectedGroups: string[]
-  sourceUrl?: string
-  fullTextUrl?: string
-  sponsor?: string
-  cosponsors?: string[]
-  aiAnalysis?: string
+  presenter?: string | null
+  year_bs?: string | null
+  session?: number | null
+  governmental_type?: string | null
+  original_amendment?: string | null
+  category?: string | null
+  source_url?: string | null
+  pdf_url?: string | null
+  summary?: string | null
+  summary_ne?: string | null
+  key_points?: string[] | null
+  concerns?: string[] | null
+  affected_groups?: string[] | null
   chamber: Chamber
-  category: string
-  postedReddit: boolean
-  postedTwitter: boolean
+  posted_reddit: boolean
+  posted_twitter: boolean
+  scrape_count?: number
+  ai_analysis_at?: string | null
+  // Timeline
+  timeline_distribution?: string | null
+  timeline_present?: string | null
+  timeline_general_disc?: string | null
+  timeline_committee_disc?: string | null
+  timeline_report?: string | null
+  timeline_passed?: string | null
+  timeline_authenticated?: string | null
+  created_at: string
+  updated_at: string
 }
+
 
 // ─── Vote ─────────────────────────────────────────────────────────────────────
 
