@@ -93,7 +93,7 @@ export default function BillsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/bills?select=*&order=registration_no.desc`
+        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/bills?select=*&order=created_at.desc`
         const res = await fetch(url, {
           headers: {
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
