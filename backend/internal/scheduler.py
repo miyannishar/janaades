@@ -1,4 +1,4 @@
-"""APScheduler — bill scrape (daily) + news scrape (every 6h, configurable)."""
+"""APScheduler — bill scrape (daily) + news scrape (every 6h) + Facebook scrape (every 3h)."""
 
 import logging
 from datetime import datetime, timezone
@@ -14,7 +14,7 @@ _scheduler: Optional[AsyncIOScheduler] = None
 
 
 async def _bill_scrape_job() -> None:
-    from internal.scraper import run_scrape   # lazy — avoids circular import
+    from internal.scraper import run_scrape
     logger.info("⏰ Scheduled bill scrape triggered")
     await run_scrape()
 
@@ -23,6 +23,12 @@ async def _news_scrape_job() -> None:
     from internal.news_scraper import run_news_scrape
     logger.info("⏰ Scheduled news scrape triggered")
     await run_news_scrape()
+
+
+async def _facebook_scrape_job() -> None:
+    from internal.facebook_scraper import run_facebook_scrape
+    logger.info("⏰ Scheduled Facebook scrape triggered")
+    await run_facebook_scrape()
 
 
 def start_scheduler() -> None:
@@ -37,30 +43,42 @@ def start_scheduler() -> None:
         replace_existing=True,
     )
 
-    # ── News: 4× daily at 06:00, 12:00, 18:00, 00:00 UTC ────────
-    # Also fires once immediately on startup so the feed is populated right away.
-    news_hours = settings.news_scrape_hours   # e.g. "0,6,12,18"
+    # ── News: 4× daily at 00:05, 06:05, 12:05, 18:05 UTC ────────
     _scheduler.add_job(
         _news_scrape_job,
-        CronTrigger(hour=news_hours, minute=5, timezone="UTC"),  # :05 past the hour
+        CronTrigger(hour=settings.news_scrape_hours, minute=5, timezone="UTC"),
         id="scheduled_news_scrape",
         replace_existing=True,
     )
 
-    # Fire immediately on startup (next_run_time = now)
+    # ── Facebook: every 3h at :10 past (1, 4, 7, 10, 13, 16, 19, 22 UTC) ──
+    _scheduler.add_job(
+        _facebook_scrape_job,
+        CronTrigger(hour="1,4,7,10,13,16,19,22", minute=10, timezone="UTC"),
+        id="scheduled_facebook_scrape",
+        replace_existing=True,
+    )
+
+    # ── Fire news + facebook immediately on startup ───────────────
     _scheduler.add_job(
         _news_scrape_job,
-        CronTrigger(year=datetime.now(timezone.utc).year),   # one-shot via a distant trigger
         id="startup_news_scrape",
-        replace_existing=True,
         next_run_time=datetime.now(timezone.utc),
+        trigger=CronTrigger(year="2099"),   # effectively a one-shot
+    )
+    _scheduler.add_job(
+        _facebook_scrape_job,
+        id="startup_facebook_scrape",
+        next_run_time=datetime.now(timezone.utc),
+        trigger=CronTrigger(year="2099"),
     )
 
     _scheduler.start()
     logger.info(
-        f"Scheduler started — "
-        f"bill scrape @ {settings.scrape_schedule_hour:02d}:00 UTC daily | "
-        f"news scrape @ {news_hours}:05 UTC"
+        "Scheduler started — "
+        f"bills @ {settings.scrape_schedule_hour:02d}:00 UTC daily | "
+        f"news @ {settings.news_scrape_hours}:05 UTC | "
+        "facebook @ 1,4,7,10,13,16,19,22:10 UTC"
     )
 
 

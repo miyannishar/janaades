@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     news_scrape_hours: str = "0,6,12,18" # UTC hours for news scrape (cron hour field)
     log_level: str = "INFO"
 
+    # Facebook Graph API
+    fb_page_slug: str = "officialroutineofnepalbanda"
+    fb_access_token: str = ""   # Set to "{app_id}|{app_secret}" or a long-lived page token
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
