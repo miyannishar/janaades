@@ -21,7 +21,6 @@ const nav = [
     group: 'Legislature',
     items: [
       { href: '/bills',      icon: FileText,  label: 'Bills Tracker',    labelNe: 'विधेयक' },
-      { href: '/committees', icon: Building2, label: 'Committees',        labelNe: 'समितिहरू' },
     ]
   },
   {

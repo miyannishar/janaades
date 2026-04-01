@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Bill, BillStatus } from '@/lib/types'
 import {
   FileText, Search, ChevronRight, Calendar, Tag,
-  ExternalLink, Loader2, AlertCircle, Download
+  ExternalLink, Loader2, AlertCircle, Download, Building, Users
 } from 'lucide-react'
 
 // ─── Parliament pipeline stages (in order) ───────────────────────────────────
@@ -83,11 +83,12 @@ const PASSED_STATUSES: BillStatus[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BillsPage() {
-  const [bills, setBills]   = useState<Bill[]>([])
+  const [bills, setBills]     = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState<string | null>(null)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState('All')
+  const [error, setError]     = useState<string | null>(null)
+  const [search, setSearch]   = useState('')
+  const [filter, setFilter]   = useState('All')
+  const [chamber, setChamber] = useState<'Both' | 'HOR' | 'NA'>('Both')
 
   useEffect(() => {
     async function load() {
@@ -123,13 +124,16 @@ export default function BillsPage() {
       : filter === 'Passed' ? PASSED_STATUSES.includes(b.status)
       : filter === 'Failed' ? (b.status === 'failed' || b.status === 'withdrawn')
       : true
-    return matchQ && matchF
+    const matchC = chamber === 'Both' ? true : b.chamber === chamber
+    return matchQ && matchF && matchC
   })
 
   const total   = bills.length
   const active  = bills.filter(b => ACTIVE_STATUSES.includes(b.status)).length
   const passed  = bills.filter(b => PASSED_STATUSES.includes(b.status)).length
   const enacted = bills.filter(b => b.status === 'authenticated').length
+  const horCount = bills.filter(b => b.chamber === 'HOR').length
+  const naCount  = bills.filter(b => b.chamber === 'NA').length
 
   const FILTERS = ['All', 'Active', 'Passed', 'Failed']
 
@@ -169,7 +173,7 @@ export default function BillsPage() {
         </div>
 
         {/* Filters */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={13} style={{ position: 'absolute', left: '0.625rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input className="input" placeholder="Search bills, ministry, presenter…"
@@ -185,6 +189,22 @@ export default function BillsPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Chamber filter */}
+        <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.75rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginRight: '0.25rem' }}>Chamber:</span>
+          {(['Both', 'HOR', 'NA'] as const).map(c => (
+            <button key={c} onClick={() => setChamber(c)}
+              className={chamber === c ? 'btn-primary' : 'btn-ghost'}
+              style={{ padding: '0.25rem 0.625rem', fontSize: '0.7rem' }}>
+              {c === 'Both'
+                ? `Both (${loading ? '…' : total})`
+                : c === 'HOR'
+                ? `🏛 HoR (${loading ? '…' : horCount})`
+                : `🏟 NA (${loading ? '…' : naCount})`}
+            </button>
+          ))}
         </div>
 
         {/* States */}
@@ -219,6 +239,14 @@ export default function BillsPage() {
                       {/* Chips + date */}
                       <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
                         <span className={`chip ${meta.cls}`}>{meta.label}</span>
+                        {/* Chamber badge */}
+                        <span className="chip" style={{
+                          background: bill.chamber === 'HOR' ? 'rgba(99,102,241,0.12)' : 'rgba(20,184,166,0.12)',
+                          color: bill.chamber === 'HOR' ? 'var(--indigo)' : '#14b8a6',
+                          fontWeight: 700, fontSize: '0.6rem',
+                        }}>
+                          {bill.chamber === 'HOR' ? '🏛 HoR' : '🏟 NA'}
+                        </span>
                         {bill.registration_no && (
                           <span className="chip chip-muted">Reg #{bill.registration_no}</span>
                         )}
