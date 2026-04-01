@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 AI endpoints:
   POST /api/ai/summarize/{registration_no}  — summarise one bill and save to DB

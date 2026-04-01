@@ -15,6 +15,7 @@ from internal.scheduler import start_scheduler, stop_scheduler
 from router.bills import router as bills_router
 from router.scraper import router as scraper_router
 from router.ai import router as ai_router
+from router.activities import router as activities_router
 
 # ── Logging ─────────────────────────────────────────────────────
 logging.basicConfig(
@@ -61,9 +62,10 @@ app.add_middleware(
 )
 
 # ── Routers ──────────────────────────────────────────────────────
-app.include_router(bills_router,   prefix="/api")
-app.include_router(scraper_router, prefix="/api")
-app.include_router(ai_router,      prefix="/api")
+app.include_router(bills_router,      prefix="/api")
+app.include_router(scraper_router,    prefix="/api")
+app.include_router(ai_router,         prefix="/api")
+app.include_router(activities_router, prefix="/api")
 
 
 # ── Health ───────────────────────────────────────────────────────

@@ -1,6 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { MOCK_ALERTS, MOCK_ACTIVITIES, MOCK_SCRAPING_JOBS, MOCK_STATS, REAL_MPs } from '@/lib/nepal-data'
+import { fetchRecentActivities } from '@/lib/supabase'
+import type { Activity as ActivityType } from '@/lib/supabase'
 import { TrendingUp, AlertTriangle, CheckCircle2, Zap, FileText, Users, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
@@ -133,45 +136,84 @@ function ScraperStatus() {
 
 /* ─── Legislative Pulse (Activity Feed) ──────────────── */
 function ActivityFeed() {
+  const [items, setItems] = useState<ActivityType[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecentActivities(8).then(data => {
+      setItems(data)
+      setLoading(false)
+    })
+  }, [])
+
   const typeColor: Record<string, string> = {
+    news:            'var(--blue)',
     bill_introduced: 'var(--indigo)',
-    bill_passed: 'var(--emerald)',
-    bill_failed: 'var(--crimson)',
-    vote_held: 'var(--amber)',
-    misconduct: 'var(--crimson)',
+    bill_passed:     'var(--emerald)',
+    bill_failed:     'var(--crimson)',
+    vote_held:       'var(--amber)',
+    misconduct:      'var(--crimson)',
     minister_action: 'var(--amber)',
-    gazette_notice: 'var(--blue)',
+    gazette_notice:  'var(--blue)',
   }
+
+  // While loading or empty, fall back to mock
+  const displayItems = (loading || items.length === 0)
+    ? MOCK_ACTIVITIES.slice(0, 8) as unknown as ActivityType[]
+    : items
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-      {MOCK_ACTIVITIES.slice(0, 8).map(a => {
+      {displayItems.map(a => {
         const color = typeColor[a.type] || 'var(--text-muted)'
         return (
-          <div key={a.id} style={{
-            display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-            padding: '0.6rem 0.75rem',
-            borderRadius: 8,
-            background: 'rgba(255, 255, 255, 0.01)',
-            transition: 'all 150ms ease',
-          }}>
-            {/* Color accent dot */}
-            <div style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: color,
-              boxShadow: `0 0 8px ${color}44`,
-              flexShrink: 0, marginTop: '0.4rem',
-            }} />
+          <div key={a.id}
+            style={{
+              display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
+              padding: '0.6rem 0.75rem',
+              borderRadius: 8,
+              background: a.type === 'news' ? 'var(--surface-2)' : 'rgba(255,255,255,0.01)',
+              transition: 'all 150ms ease',
+              cursor: a.source_url ? 'pointer' : 'default',
+            }}
+            onClick={() => a.source_url && window.open(a.source_url, '_blank')}
+          >
+            {/* Thumbnail for news */}
+            {a.type === 'news' && (a as any).image_url ? (
+              <img
+                src={(a as any).image_url}
+                alt=""
+                style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            ) : (
+              <div style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: color,
+                boxShadow: `0 0 8px ${color}44`,
+                flexShrink: 0, marginTop: '0.4rem',
+              }} />
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.35, marginBottom: '0.15rem' }}>{a.title}</div>
+              <div style={{
+                fontSize: '0.78rem', fontWeight: 600,
+                color: 'var(--text-primary)', lineHeight: 1.35, marginBottom: '0.15rem',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{a.title}</div>
               <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                 <span>{format(new Date(a.date), 'dd MMM · h:mm a')}</span>
                 {a.ministry && <><span style={{ opacity: 0.4 }}>·</span><span style={{ color: 'var(--text-accent)' }}>{a.ministry}</span></>}
+                {a.type === 'news' && <span style={{ color, marginLeft: 'auto' }}>NEWS</span>}
               </div>
             </div>
           </div>
         )
       })}
+      {loading && items.length === 0 && (
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.5rem' }}>
+          Loading live activity…
+        </div>
+      )}
     </div>
   )
 }
@@ -307,7 +349,7 @@ export default function DashboardPage() {
                 <div className="section-label">Legislative Pulse</div>
                 <div className="heading-sm" style={{ marginTop: '0.3rem' }}>Recent Activity</div>
               </div>
-              <a href="/activities" className="btn-ghost" style={{ fontSize: '0.72rem', padding: '0.3rem 0.625rem' }}>
+              <a href="/activity" className="btn-ghost" style={{ fontSize: '0.72rem', padding: '0.3rem 0.625rem' }}>
                 View all <ExternalLink size={11} />
               </a>
             </div>

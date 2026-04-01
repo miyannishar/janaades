@@ -6,14 +6,18 @@
    Liquid Glass · Bloomberg Precision · Atmospheric Depth
 ═══════════════════════════════════════════════════════════════ */
 
-:root {
+/* ──────────────────────────────────────────────────────
+   DARK THEME (default)
+────────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
   /* ── Core Surfaces (Tonal Layering) ────────────── */
-  --bg:            #090e1c;   /* Level 0 — The Void */
-  --surface-1:     #0e1322;   /* Level 0.5 — sidebar base */
-  --surface-2:     #14192b;   /* Level 1 — standard cards */
-  --surface-3:     #1a1f32;   /* Level 1.5 — elevated */
-  --surface-4:     #212639;   /* Level 2 — hover / active */
-  --surface-5:     #282e42;   /* Level 2.5 — focused / top */
+  --bg:            #090e1c;
+  --surface-1:     #0e1322;
+  --surface-2:     #14192b;
+  --surface-3:     #1a1f32;
+  --surface-4:     #212639;
+  --surface-5:     #282e42;
 
   /* ── Brand Accents ─────────────────────────────── */
   --indigo:        #6366f1;
@@ -44,7 +48,7 @@
   --text-muted:    #5a5f78;
   --text-accent:   #b4b7ff;
 
-  /* ── Glass Borders (Ghost Borders) ─────────────── */
+  /* ── Glass Borders ─────────────────────────────── */
   --border:        rgba(255, 255, 255, 0.04);
   --border-strong: rgba(255, 255, 255, 0.08);
   --border-accent: rgba(99, 102, 241, 0.20);
@@ -55,15 +59,99 @@
   --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 64px rgba(99, 102, 241, 0.06);
   --shadow-glow:     0 0 40px rgba(99, 102, 241, 0.08);
 
+  /* ── Mesh gradient tints ───────────────────────── */
+  --mesh-a: rgba(99, 102, 241, 0.08);
+  --mesh-b: rgba(139, 92, 246, 0.06);
+  --mesh-c: rgba(59, 130, 246, 0.04);
+  --mesh-d: rgba(16, 185, 129, 0.03);
+
   /* ── Layout ────────────────────────────────────── */
   --sidebar-w: 260px;
   --ticker-h:  38px;
+}
+
+/* ──────────────────────────────────────────────────────
+   LIGHT THEME
+   Strategy: warm off-white base, slate surfaces,
+   rich ink text, tinted glass borders with drop shadows
+────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  /* ── Core Surfaces ──────────────────────────────── */
+  --bg:            #f4f5f9;
+  --surface-1:     #ffffff;
+  --surface-2:     #f8f9fc;
+  --surface-3:     #f0f1f7;
+  --surface-4:     #e8eaf3;
+  --surface-5:     #dfe1ef;
+
+  /* ── Brand Accents (same — brand stays consistent) */
+  --indigo:        #4f46e5;
+  --indigo-dim:    #4338ca;
+  --indigo-glow:   rgba(79, 70, 229, 0.10);
+  --indigo-soft:   rgba(79, 70, 229, 0.05);
+
+  /* ── Signal Colors (slightly richer for light bg) ─ */
+  --crimson:       #dc2626;
+  --crimson-soft:  rgba(220, 38, 38, 0.08);
+  --amber:         #d97706;
+  --amber-soft:    rgba(217, 119, 6, 0.08);
+  --emerald:       #059669;
+  --emerald-soft:  rgba(5, 150, 105, 0.08);
+  --blue:          #2563eb;
+  --blue-soft:     rgba(37, 99, 235, 0.08);
+
+  /* ── Party Colors (unchanged) ───────────────────── */
+  --rsp:           #7c3aed;
+  --rsp-soft:      rgba(124, 58, 237, 0.10);
+  --nc:            #2563eb;
+  --uml:           #dc2626;
+  --ncp:           #d97706;
+
+  /* ── Text ──────────────────────────────────────── */
+  --text-primary:  #0f1729;
+  --text-secondary: #404675;
+  --text-muted:    #8b8faf;
+  --text-accent:   #4f46e5;
+
+  /* ── Glass Borders (dark-tinted for light bg) ───── */
+  --border:        rgba(15, 23, 42, 0.06);
+  --border-strong: rgba(15, 23, 42, 0.10);
+  --border-accent: rgba(79, 70, 229, 0.20);
+  --border-glass:  rgba(15, 23, 42, 0.07);
+
+  /* ── Ambient Shadows (softer, warm-tinted) ───────── */
+  --shadow-ambient:  0 2px 16px rgba(15, 23, 42, 0.08), 0 0 40px rgba(79, 70, 229, 0.04);
+  --shadow-elevated: 0 6px 28px rgba(15, 23, 42, 0.12), 0 0 56px rgba(79, 70, 229, 0.05);
+  --shadow-glow:     0 0 32px rgba(79, 70, 229, 0.08);
+
+  /* ── Mesh gradient tints ───────────────────────── */
+  --mesh-a: rgba(79, 70, 229, 0.06);
+  --mesh-b: rgba(124, 58, 237, 0.04);
+  --mesh-c: rgba(37, 99, 235, 0.03);
+  --mesh-d: rgba(5, 150, 105, 0.02);
 }
 
 /* ─── Reset ─────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 ::selection { background: rgba(99, 102, 241, 0.25); color: var(--text-primary); }
+
+/* Smooth theme transitions — applied globally */
+html {
+  transition:
+    background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* But don't slow down transform/opacity transitions */
+.animate-fade-up, .animate-fade-in, .animate-slide,
+.stat-card, .nav-item, .btn-primary, .btn-ghost, .heatmap-cell {
+  transition-property: all;
+}
 
 body {
   background: var(--bg);
@@ -81,13 +169,14 @@ body::before {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 60% at 60% 10%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 10% 70%, rgba(16, 185, 129, 0.03) 0%, transparent 40%);
+    radial-gradient(ellipse 80% 50% at 20% 20%, var(--mesh-a) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, var(--mesh-b) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 60% 10%, var(--mesh-c) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 10% 70%, var(--mesh-d) 0%, transparent 40%);
   pointer-events: none;
   z-index: 0;
   animation: mesh-drift 25s ease-in-out infinite alternate;
+  transition: opacity 300ms ease;
 }
 
 @keyframes mesh-drift {
@@ -119,7 +208,7 @@ body::before {
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: rgba(14, 19, 34, 0.85);
+  background: color-mix(in srgb, var(--surface-1) 85%, transparent);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid var(--border-glass);
@@ -147,7 +236,7 @@ body::before {
 /* ─── Ticker (Live Intelligence Bar) ────────────────── */
 .ticker-bar {
   height: var(--ticker-h);
-  background: rgba(14, 19, 34, 0.75);
+  background: color-mix(in srgb, var(--surface-1) 80%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-glass);
@@ -311,7 +400,7 @@ body::before {
    GLASS CARDS (The Sovereign Lens Core Component)
 ═══════════════════════════════════════════════════════ */
 .card {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--surface-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
@@ -322,23 +411,23 @@ body::before {
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--border-strong);
+  background: var(--surface-3);
   box-shadow: var(--shadow-ambient);
 }
 
 .card-elevated {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-3);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-strong);
   border-radius: 14px;
   padding: 1.75rem;
   box-shadow: var(--shadow-ambient);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-2);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass);
@@ -357,7 +446,7 @@ body::before {
    STAT CARDS — Precision Data Vessels
 ═══════════════════════════════════════════════════════ */
 .stat-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
@@ -459,7 +548,7 @@ body::before {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.875rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-3);
   color: var(--text-secondary);
   border: 1px solid var(--border-glass);
   border-radius: 8px;
@@ -514,7 +603,7 @@ body::before {
 .chip-ok       { background: rgba(16, 185, 129, 0.08); color: var(--emerald); border: 1px solid rgba(16,185,129,0.12); }
 .chip-info     { background: rgba(59, 130, 246, 0.08); color: var(--blue); border: 1px solid rgba(59,130,246,0.12); }
 .chip-indigo   { background: rgba(99, 102, 241, 0.08); color: var(--text-accent); border: 1px solid rgba(99,102,241,0.12); }
-.chip-muted    { background: rgba(255, 255, 255, 0.03); color: var(--text-secondary); border: 1px solid var(--border-glass); }
+.chip-muted    { background: var(--surface-4); color: var(--text-secondary); border: 1px solid var(--border-glass); }
 
 /* Party chips */
 .chip-rsp  { background: rgba(139, 92, 246, 0.08);  color: var(--rsp);  border: 1px solid rgba(139,92,246,0.12); }
@@ -554,7 +643,7 @@ body::before {
 .input {
   width: 100%;
   padding: 0.55rem 0.875rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-3);
   color: var(--text-primary);
   border: 1px solid var(--border-glass);
   border-radius: 8px;
@@ -567,7 +656,7 @@ body::before {
 .input:focus {
   border-color: rgba(99, 102, 241, 0.35);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08), 0 0 20px rgba(99, 102, 241, 0.06);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-3);
 }
 
 .input::placeholder { color: var(--text-muted); }
@@ -591,7 +680,7 @@ body::before {
 }
 
 .data-table thead tr {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--surface-3);
 }
 
 .data-table th {
@@ -610,7 +699,7 @@ body::before {
   padding: 0.7rem 1rem;
   font-size: 0.8rem;
   color: var(--text-secondary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
   transition: all 150ms ease;
 }
 
@@ -713,7 +802,7 @@ body::before {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--surface-3);
   position: relative;
   border-right: 1px solid var(--border-glass);
   transition: all 200ms ease;
@@ -795,7 +884,7 @@ body::before {
   height: 500px;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-3);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -848,7 +937,7 @@ body::before {
 .page-header {
   padding: 1.75rem 2.5rem 1.25rem;
   border-bottom: 1px solid var(--border-glass);
-  background: rgba(14, 19, 34, 0.5);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -899,7 +988,7 @@ body::before {
 .attend-track {
   flex: 1;
   height: 4px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-4);
   border-radius: 99px;
   overflow: hidden;
   min-width: 60px;
@@ -968,4 +1057,108 @@ body::before {
 @media (max-width: 480px) {
   .dashboard-hero-grid { grid-template-columns: 1fr 1fr !important; }
   .stat-number         { font-size: 1.75rem !important; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME — Component Overrides
+   Every class with hardcoded dark rgba values re-declared.
+═══════════════════════════════════════════════════════ */
+
+/* ── Sidebar ─────────────────────────────────────────── */
+[data-theme="light"] .sidebar {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-right-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="light"] .sidebar-logo::after {
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.12), transparent);
+}
+[data-theme="light"] .sidebar-footer::before {
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.10), transparent);
+}
+[data-theme="light"] .nav-item:hover {
+  background: rgba(79, 70, 229, 0.05);
+  color: var(--text-primary);
+}
+[data-theme="light"] .nav-item.active {
+  background: linear-gradient(90deg, rgba(79,70,229,0.08), rgba(79,70,229,0.02));
+}
+
+/* ── Ticker & page chrome ────────────────────────────── */
+[data-theme="light"] .ticker-bar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="light"] .page-header {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.07) !important;
+}
+[data-theme="light"] .page-header::after {
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.12), transparent);
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+[data-theme="light"] .card {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.07) !important;
+  box-shadow: 0 1px 6px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04) !important;
+}
+[data-theme="light"] .card:hover {
+  background: #ffffff !important;
+  border-color: rgba(79, 70, 229, 0.18) !important;
+  box-shadow: 0 4px 20px rgba(15,23,42,0.09), 0 0 0 1px rgba(79,70,229,0.08) !important;
+}
+[data-theme="light"] .card-elevated {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.07), 0 8px 24px rgba(15,23,42,0.05) !important;
+}
+[data-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ── Stat cards ──────────────────────────────────────── */
+[data-theme="light"] .stat-card {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.07) !important;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.06) !important;
+}
+[data-theme="light"] .stat-card:hover {
+  border-color: rgba(79, 70, 229, 0.20) !important;
+  box-shadow: 0 6px 24px rgba(15,23,42,0.10) !important;
+}
+[data-theme="light"] .stat-number {
+  text-shadow: none;
+}
+
+/* ── Data table ──────────────────────────────────────── */
+[data-theme="light"] .data-table thead tr {
+  background: rgba(15, 23, 42, 0.025);
+}
+[data-theme="light"] .data-table th {
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+[data-theme="light"] .data-table td {
+  border-bottom-color: rgba(15, 23, 42, 0.04);
+}
+[data-theme="light"] .data-table tr:hover td {
+  background: rgba(79, 70, 229, 0.03);
+}
+
+/* ── Inputs ──────────────────────────────────────────── */
+[data-theme="light"] .input {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+[data-theme="light"] .input:focus {
+  border-color: rgba(79, 70, 229, 0.40);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.25);
 }

@@ -3,17 +3,18 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, FileText, Users, Building2,
+  LayoutDashboard, FileText, Users,
   Shield, Radio, Share2, Cpu, MapPin, Activity,
   Zap, ChevronRight, CheckSquare, Sparkles
 } from 'lucide-react'
+import ThemeToggle from './ThemeToggle'
 
 const nav = [
   {
     group: 'Core',
     items: [
       { href: '/',           icon: LayoutDashboard, label: 'Dashboard',         labelNe: 'ड्यासबोर्ड' },
-      { href: '/activities', icon: Activity,        label: 'Activity Feed',      labelNe: 'गतिविधि' },
+      { href: '/activity',  icon: Activity,        label: 'Activity Feed',      labelNe: 'गतिविधि' },
       { href: '/find-my-mp', icon: MapPin,          label: 'Find My MP',         labelNe: 'मेरो सांसद' },
     ]
   },
@@ -114,6 +115,10 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="sidebar-footer">
+        {/* Theme toggle */}
+        <div style={{ marginBottom: '0.875rem' }}>
+          <ThemeToggle />
+        </div>
         <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>
           <div style={{
             fontWeight: 700,
