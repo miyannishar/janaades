@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Users, Building2,
   Shield, Radio, Share2, Cpu, MapPin, Activity,
-  Zap, ChevronRight, CheckSquare
+  Zap, ChevronRight, CheckSquare, Sparkles
 } from 'lucide-react'
 
 const nav = [
@@ -54,17 +54,29 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">जनादेश</div>
-        <div className="logo-sub">Nepal Parliamentary Monitor</div>
+        <div className="logo-sub">Parliamentary Monitor</div>
       </div>
 
-      {/* Live badge */}
-      <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--emerald-soft)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(16,185,129,0.15)' }}>
+      {/* Live Session Badge */}
+      <div style={{ padding: '0.75rem 1.25rem' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.6rem',
+          background: 'rgba(16, 185, 129, 0.06)',
+          padding: '0.5rem 0.875rem',
+          borderRadius: '8px',
+          border: '1px solid rgba(16, 185, 129, 0.10)',
+          transition: 'all 200ms ease',
+        }}>
           <span className="dot dot-live" />
-          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--emerald)', letterSpacing: '0.06em' }}>
-            LIVE MONITORING
-          </span>
-          <Radio size={11} style={{ color: 'var(--emerald)', marginLeft: 'auto' }} />
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--emerald)', letterSpacing: '0.08em' }}>
+              LIVE SESSION
+            </span>
+            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '1px' }}>
+              Monsoon 2083 B.S.
+            </div>
+          </div>
+          <Radio size={11} style={{ color: 'var(--emerald)', opacity: 0.7 }} />
         </div>
       </div>
 
@@ -77,12 +89,22 @@ export default function Sidebar() {
               const active = path === href
               return (
                 <Link key={href} href={href} className={`nav-item ${active ? 'active' : ''}`}>
-                  <Icon size={15} style={{ flexShrink: 0 }} />
+                  <Icon size={15} style={{
+                    flexShrink: 0,
+                    opacity: active ? 1 : 0.6,
+                    transition: 'opacity 200ms ease',
+                  }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: 1.2 }}>{label}</div>
-                    <div className="font-deva" style={{ fontSize: '0.65rem', color: active ? 'var(--text-accent)' : 'var(--text-muted)', lineHeight: 1 }}>{labelNe}</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: active ? 600 : 500, lineHeight: 1.2 }}>{label}</div>
+                    <div className="font-deva" style={{
+                      fontSize: '0.6rem',
+                      color: active ? 'var(--text-accent)' : 'var(--text-muted)',
+                      lineHeight: 1,
+                      marginTop: '1px',
+                      opacity: active ? 0.8 : 0.5,
+                    }}>{labelNe}</div>
                   </div>
-                  {active && <ChevronRight size={12} style={{ flexShrink: 0, color: 'var(--indigo)' }} />}
+                  {active && <ChevronRight size={12} style={{ flexShrink: 0, color: 'var(--indigo)', opacity: 0.7 }} />}
                 </Link>
               )
             })}
@@ -92,10 +114,20 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>जनादेश v2.0</div>
-          <div>RSP Parliament 2083 B.S.</div>
-          <div>Data: parliament.gov.np</div>
+        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>
+          <div style={{
+            fontWeight: 700,
+            color: 'var(--text-secondary)',
+            marginBottom: '0.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+          }}>
+            <Sparkles size={10} style={{ color: 'var(--indigo)', opacity: 0.6 }} />
+            जनादेश v3.0
+          </div>
+          <div style={{ opacity: 0.7 }}>RSP Parliament 2083 B.S.</div>
+          <div style={{ opacity: 0.5 }}>Data: parliament.gov.np</div>
         </div>
       </div>
     </aside>
