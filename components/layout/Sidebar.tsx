@@ -176,7 +176,7 @@ export default function Sidebar() {
       )}
 
       {/* ─── Sidebar panel ─────────────────────────────────── */}
-      <aside className={`sidebar animate-slide ${open ? 'open' : ''}`}>
+      <aside className={`sidebar ${open ? 'open' : ''}`}>
         {/* Close button inside sidebar on mobile */}
         <button
           className="sidebar-close-btn"
