@@ -1,11 +1,13 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Users,
   Shield, Radio, Cpu, MapPin, Activity,
-  Zap, ChevronRight, CheckSquare, Sparkles
+  Zap, ChevronRight, CheckSquare, Sparkles,
+  Menu, X
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
@@ -48,9 +50,19 @@ const nav = [
 
 export default function Sidebar() {
   const path = usePathname()
+  const [open, setOpen] = useState(false)
 
-  return (
-    <aside className="sidebar animate-slide">
+  // Close on route change
+  useEffect(() => { setOpen(false) }, [path])
+
+  // Lock scroll when open
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">जनादेश</div>
@@ -65,7 +77,6 @@ export default function Sidebar() {
           padding: '0.5rem 0.875rem',
           borderRadius: '8px',
           border: '1px solid rgba(16, 185, 129, 0.10)',
-          transition: 'all 200ms ease',
         }}>
           <span className="dot dot-live" />
           <div style={{ flex: 1 }}>
@@ -114,7 +125,6 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        {/* Theme toggle */}
         <div style={{ marginBottom: '0.875rem' }}>
           <ThemeToggle />
         </div>
@@ -134,6 +144,49 @@ export default function Sidebar() {
           <div style={{ opacity: 0.5 }}>Data: parliament.gov.np</div>
         </div>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* ─── Mobile header bar ─────────────────────────────── */}
+      <div className="mobile-header">
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setOpen(o => !o)}
+          aria-label="Toggle menu"
+        >
+          <Menu size={20} />
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>जनादेश</span>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 500 }}>Parliament Monitor</span>
+        </div>
+        <span className="chip chip-ok" style={{ gap: '0.35rem', fontSize: '0.58rem' }}>
+          <span className="dot dot-live" />LIVE
+        </span>
+      </div>
+
+      {/* ─── Backdrop ──────────────────────────────────────── */}
+      {open && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* ─── Sidebar panel ─────────────────────────────────── */}
+      <aside className={`sidebar animate-slide ${open ? 'open' : ''}`}>
+        {/* Close button inside sidebar on mobile */}
+        <button
+          className="sidebar-close-btn"
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
+        {sidebarContent}
+      </aside>
+    </>
   )
 }

@@ -1001,63 +1001,172 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESPONSIVE — Mobile-first breakpoints
+   MOBILE HEADER & SIDEBAR OVERLAY
 ═══════════════════════════════════════════════════════ */
 
-@media (max-width: 1024px) {
-  .dashboard-hero-grid    { grid-template-columns: repeat(2, 1fr) !important; }
-  .dashboard-main-grid   { grid-template-columns: 1fr 1fr !important; }
-  .dashboard-right-col   { grid-column: 1 / -1 !important; }
-  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
-  .ministers-grid        { grid-template-columns: 1fr !important; }
-  .members-stat-grid     { grid-template-columns: repeat(2, 1fr) !important; }
-  .bills-stat-grid       { grid-template-columns: repeat(2, 1fr) !important; }
-  .votes-stat-grid       { grid-template-columns: repeat(3, 1fr) !important; }
+/* Mobile top bar — hidden on desktop */
+.mobile-header {
+  display: none;
 }
 
+/* Sidebar backdrop — dark overlay when sidebar is open */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 55;
+  animation: fade-in-overlay 200ms ease;
+}
+@keyframes fade-in-overlay { from { opacity: 0; } to { opacity: 1; } }
+
+/* Close X button inside sidebar — hidden on desktop */
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — Breakpoints
+═══════════════════════════════════════════════════════ */
+
+/* ── Tablet (1024px) ───────────────────────────────── */
+@media (max-width: 1024px) {
+  .dashboard-hero-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+  .dashboard-main-grid    { grid-template-columns: 1fr 1fr !important; }
+  .dashboard-right-col    { grid-column: 1 / -1 !important; }
+  .dashboard-bottom-grid  { grid-template-columns: 1fr !important; }
+  .ministers-grid         { grid-template-columns: 1fr !important; }
+  .members-stat-grid      { grid-template-columns: repeat(2, 1fr) !important; }
+  .bills-stat-grid        { grid-template-columns: repeat(2, 1fr) !important; }
+  .votes-stat-grid        { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
+/* ── Mobile (768px) ───────────────────────────────── */
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; }
 
+  /* ─ Sidebar slides off-canvas ─────────────── */
   .sidebar {
+    width: 280px;
     transform: translateX(-100%);
     pointer-events: none;
   }
   .sidebar.open {
     transform: translateX(0);
     pointer-events: all;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.6), 0 0 60px rgba(99, 102, 241, 0.06);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.6), 0 0 60px rgba(99,102,241,0.08);
+  }
+  .sidebar-backdrop { display: block; }
+  .sidebar-close-btn { display: flex; }
+
+  /* ─ Mobile header bar ────────────────── */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    height: 52px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-glass);
+  }
+  .mobile-menu-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border-glass);
+    background: var(--surface-3);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .main-content { margin-left: 0; }
-  .page-container { padding: 1.25rem; }
+  /* ─ Layout ────────────────────────────── */
+  .main-content  { margin-left: 0; }
+  .page-container { padding: 1rem; }
+  .ticker-bar { top: 52px; }  /* offset below mobile header */
 
   .page-header {
-    padding: 1.25rem;
+    padding: 1rem;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
 
-  .dashboard-hero-grid    { grid-template-columns: repeat(2, 1fr) !important; }
-  .dashboard-main-grid   { grid-template-columns: 1fr !important; }
-  .dashboard-right-col   { grid-column: 1 / -1 !important; }
-  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
+  /* ─ Dashboard grids ───────────────────── */
+  .dashboard-hero-grid    { grid-template-columns: 1fr 1fr !important; }
+  .dashboard-main-grid    { grid-template-columns: 1fr !important; }
+  .dashboard-right-col    { grid-column: 1 / -1 !important; }
+  .dashboard-bottom-grid  { grid-template-columns: 1fr !important; }
+
+  /* ─ Other page grids ──────────────────── */
   .ministers-grid        { grid-template-columns: 1fr !important; }
   .members-stat-grid     { grid-template-columns: repeat(2, 1fr) !important; }
   .bills-stat-grid       { grid-template-columns: repeat(2, 1fr) !important; }
-  .votes-stat-grid       { grid-template-columns: 1fr !important; }
+  .votes-stat-grid       { grid-template-columns: 1fr 1fr !important; }
 
+  /* ─ Find My MP: stack map + list vertically ─── */
+  .find-my-mp-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .find-my-mp-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .find-my-mp-map {
+    height: 50vw !important;
+    min-height: 260px !important;
+    max-height: 360px !important;
+    border-radius: 12px;
+  }
+
+  /* ─ Data table: hide less-important columns ── */
   .data-table th:nth-child(n+5),
   .data-table td:nth-child(n+5) { display: none; }
 
-  .ticker-label { display: none; }
-  .heading-xl, .display-md { font-size: 1.25rem !important; }
+  /* ─ Typography ──────────────────────── */
+  .ticker-label  { display: none; }
+  .heading-xl    { font-size: 1.2rem !important; }
+  .display-md    { font-size: 1.1rem !important; }
+  .stat-number   { font-size: 1.8rem !important; }
+
+  /* ─ Touch-friendly tap targets ──────────── */
+  .nav-item      { padding: 0.75rem 1rem; min-height: 44px; }
+  .btn-primary,
+  .btn-ghost     { min-height: 40px; padding-left: 0.875rem; padding-right: 0.875rem; }
 }
 
+/* ── Small mobile (480px) ───────────────────────── */
 @media (max-width: 480px) {
+  .page-container { padding: 0.75rem; }
   .dashboard-hero-grid { grid-template-columns: 1fr 1fr !important; }
-  .stat-number         { font-size: 1.75rem !important; }
+  .members-stat-grid   { grid-template-columns: 1fr 1fr !important; }
+  .bills-stat-grid     { grid-template-columns: 1fr 1fr !important; }
+  .votes-stat-grid     { grid-template-columns: 1fr 1fr !important; }
+  .stat-number         { font-size: 1.6rem !important; }
+  .card                { padding: 1rem !important; }
 }
+
 
 /* ═══════════════════════════════════════════════════════
    LIGHT THEME — Component Overrides
@@ -1095,6 +1204,17 @@ body::before {
 [data-theme="light"] .page-header::after {
   background: linear-gradient(90deg, transparent, rgba(79,70,229,0.12), transparent);
 }
+[data-theme="light"] .mobile-header {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="light"] .mobile-menu-btn,
+[data-theme="light"] .sidebar-close-btn {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.10);
+  color: var(--text-secondary);
+}
+
 
 /* ── Cards ───────────────────────────────────────────── */
 [data-theme="light"] .card {

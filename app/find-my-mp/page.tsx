@@ -276,7 +276,7 @@ export default function FindMyMPPage() {
         </div>
 
         {/* Summary stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div className="find-my-mp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
           {[
             { label: 'Matched',    val: filtered.length, color: 'var(--indigo)' },
             { label: 'Female',     val: female,           color: 'var(--emerald)' },
@@ -291,10 +291,10 @@ export default function FindMyMPPage() {
         </div>
 
         {/* Map + right panel */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1rem', alignItems: 'start' }}>
+        <div className="find-my-mp-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1rem', alignItems: 'start' }}>
 
           {/* Map */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden', height: 520, position: 'sticky', top: 'calc(var(--ticker-h) + 1rem)' }}>
+          <div className="card find-my-mp-map" style={{ padding: 0, overflow: 'hidden', height: 520, position: 'sticky', top: 'calc(var(--ticker-h) + 1rem)' }}>
             {loading ? (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                 Loading map…
