@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Search, MapPin, Users, X, ChevronLeft } from 'lucide-react'
+import { Search, MapPin, Users, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import type { ExcelMP } from '@/lib/excel-mps'
 
@@ -190,22 +190,27 @@ export default function FindMyMPPage() {
   const fptp    = filtered.filter(m => m.electionType === 'FPTP').length
   const parties = [...new Set(filtered.map(m => m.partyShort))].length
 
-  // When pin is clicked: show district panel, clear any single-MP highlight
+  // When pin is clicked: show district panel — does NOT touch search/filters
   const handleSelectDistrict = (dMps: ExcelMP[], districtName: string) => {
     setPinnedDistrict({ name: districtName, mps: dMps })
-    setHighlighted(dMps[0]) // keep map pin glowing
+    setHighlighted(dMps[0])
   }
 
-  // When list row is clicked: highlight that MP, clear district panel
+  // When list row is clicked: highlight that MP on the map
   const handleListClick = (mp: ExcelMP) => {
     setHighlighted(mp)
-    setPinnedDistrict(null)
   }
 
   const clearPin = () => {
     setPinnedDistrict(null)
     setHighlighted(null)
   }
+
+  // Map always sees the full filtered set (all pins stay visible)
+  // List shows only the pinned district's MPs when a pin is active
+  const listMps = pinnedDistrict
+    ? filtered.filter(mp => mp.district === pinnedDistrict.name)
+    : filtered
 
   return (
     <div>
@@ -253,9 +258,21 @@ export default function FindMyMPPage() {
             </select>
           ))}
 
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            {filtered.length} MPs shown
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+            {pinnedDistrict && (
+              <button onClick={clearPin} style={{
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                padding: '2px 8px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 700,
+                background: 'var(--indigo-soft)', border: '1px solid var(--border-accent)',
+                color: 'var(--text-accent)', cursor: 'pointer',
+              }}>
+                <X size={10} /> {pinnedDistrict.name}
+              </button>
+            )}
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {filtered.length} MPs · {listMps.length} in list
+            </span>
+          </div>
         </div>
 
         {/* Summary stats */}
@@ -325,14 +342,14 @@ export default function FindMyMPPage() {
               }}>
                 <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
                 <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  All MPs
+                  {pinnedDistrict.name} MPs
                 </span>
                 <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
               </div>
             )}
 
-            {/* Full MP list */}
-            {!loading && filtered.slice(0, 60).map(mp => (
+            {/* Full MP list — filtered to district when pin is active */}
+            {!loading && listMps.slice(0, 60).map(mp => (
               <div key={mp.id}
                 onClick={() => handleListClick(mp)}
                 style={{
@@ -356,13 +373,13 @@ export default function FindMyMPPage() {
               </div>
             ))}
 
-            {!loading && filtered.length > 60 && (
+            {!loading && listMps.length > 60 && (
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.5rem' }}>
-                + {filtered.length - 60} more · refine filters to narrow results
+                + {listMps.length - 60} more · refine filters to narrow results
               </div>
             )}
 
-            {!loading && filtered.length === 0 && (
+            {!loading && listMps.length === 0 && (
               <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <Users size={24} style={{ margin: '0 auto 0.5rem' }} />
                 <div>No MPs match your filters</div>

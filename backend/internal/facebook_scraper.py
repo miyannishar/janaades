@@ -70,9 +70,9 @@ async def _scrape_page_posts() -> list[dict]:
         )
         page = await ctx.new_page()
 
-        # Block heavy resources — we only need HTML+JS
+        # Block heavy resources — allow images, block video/fonts
         await page.route(
-            "**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,mp4,mp3}",
+            "**/*.{woff,woff2,mp4,mp3,svg}",
             lambda r: r.abort(),
         )
 
@@ -134,7 +134,20 @@ async def _scrape_page_posts() -> list[dict]:
                     break;
                 }
 
-                results.push({ text: text.slice(0, 1500), url });
+                // Image: first meaningful <img> that isn't an avatar/icon
+                let image_url = '';
+                for (const img of art.querySelectorAll('img[src]')) {
+                    const src = img.src || '';
+                    const w = img.naturalWidth || img.width || 0;
+                    // Skip tiny icons, profile pics (usually ≤ 40px), and data URIs
+                    if (src.startsWith('data:')) continue;
+                    if (w > 0 && w < 60) continue;
+                    if (src.includes('rsrc.php') && w < 100) continue;
+                    image_url = src;
+                    break;
+                }
+
+                results.push({ text: text.slice(0, 1500), url, image_url });
                 if (results.length >= 20) break;
             }
 
@@ -144,7 +157,7 @@ async def _scrape_page_posts() -> list[dict]:
                     const text = el.innerText.trim();
                     if (text.length < 50 || seen.has(text.slice(0,80))) continue;
                     seen.add(text.slice(0,80));
-                    results.push({ text: text.slice(0, 1500), url: '' });
+                    results.push({ text: text.slice(0, 1500), url: '', image_url: '' });
                     if (results.length >= 20) break;
                 }
             }
@@ -246,6 +259,7 @@ def _save(post: dict, cls: dict) -> None:
         "title":       cls["title"][:400],
         "description": cls.get("description", "")[:800],
         "source_url":  source,
+        "image_url":   post.get("image_url") or None,
         "date":        datetime.now(timezone.utc).isoformat(),
         "priority":    cls.get("priority", "medium"),
         "ministry":    "Social Media",

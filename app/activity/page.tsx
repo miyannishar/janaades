@@ -198,7 +198,11 @@ export default function ActivityPage() {
     }
 
     setHasMore(data.length === PAGE_SIZE)
-    setItems(prev => reset ? data : [...prev, ...data])
+    setItems(prev => {
+      const merged = reset ? data : [...prev, ...data]
+      const seen = new Set<string>()
+      return merged.filter(item => seen.has(item.id) ? false : (seen.add(item.id), true))
+    })
     setPage(nextPage + (reset ? 0 : 1))
     setLoading(false)
     setRefreshing(false)
