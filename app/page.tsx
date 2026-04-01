@@ -304,7 +304,20 @@ function ActivityFeed() {
 
 /* ─── Dashboard Page ─────────────────────────────────── */
 export default function DashboardPage() {
-  const rspMPs = REAL_MPs.filter(m => m.partyShort === 'RSP').length
+  const [newsToday, setNewsToday] = useState(0)
+
+  useEffect(() => {
+    import('@/lib/supabase').then(({ supabase }) => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
+        .eq('type', 'news')
+        .gte('date', today.toISOString())
+        .then(({ count }) => setNewsToday(count ?? 0))
+    })
+  }, [])
 
   return (
     <div>
@@ -313,7 +326,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="heading-xl">
             <span style={{ opacity: 0.4, marginRight: '0.5rem' }}>◆</span>
-            Intelligence Dashboard
+            जनादेश Dashboard
           </h1>
           <p className="text-secondary" style={{ fontSize: '0.78rem', marginTop: '0.3rem' }}>
             Nepal Pratinidhi Sabha · 2083 B.S. Session · RSP Supermajority Parliament
@@ -344,8 +357,8 @@ export default function DashboardPage() {
               accentColor: 'var(--rsp)', icon: <TrendingUp size={16} />,
             },
             {
-              number: String(rspMPs), label: 'RSP MPs', delta: 'FPTP + PR seats', type: 'up',
-              accentColor: 'var(--emerald)', icon: <Users size={16} />,
+              number: String(newsToday || '—'), label: 'News Today', delta: 'live from OnlineKhabar', type: 'info',
+              accentColor: 'var(--blue)', icon: <FileText size={16} />,
             },
             {
               number: '47', label: 'Bills Tracked', delta: '8 passed this session', type: 'up',

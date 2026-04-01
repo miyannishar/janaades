@@ -3275,57 +3275,6 @@ export const MOCK_MINISTERS: Minister[] = [
   },
 ]
 
-// ─── Alerts ───────────────────────────────────────────────────────────────────
-
-export const MOCK_ALERTS = [
-  {
-    id: 'alert-001',
-    priority: 'critical' as const,
-    ministry: 'Ministry of Finance',
-    title: 'Budget submission 48hrs overdue — Finance Minister',
-    description: 'Finance Minister failed to submit Q3 budget documentation by the constitutional deadline of Kartik 15. Automatic escalation triggered to PM Secretariat.',
-    date: '2026-03-28T09:00:00Z',
-    source: 'parliament.gov.np',
-  },
-  {
-    id: 'alert-002',
-    priority: 'high' as const,
-    ministry: 'Prime Minister\'s Office',
-    title: 'PM Balendra Shah missed 3 consecutive parliamentary sessions',
-    description: 'Tracking constitutional adherence — threshold at 88%. Quorum violation impact being assessed. No official statement issued.',
-    date: '2026-03-27T14:00:00Z',
-    source: 'parliament.gov.np',
-  },
-  {
-    id: 'alert-003',
-    priority: 'low' as const,
-    ministry: 'Ministry of ICT',
-    title: 'Digital Nepal Framework Act passed Third Reading',
-    description: '182 votes in favour, 42 against. Deployment of implementation monitors scheduled for 2082/04/01. Major RSP election promise fulfilled.',
-    date: '2026-03-26T16:30:00Z',
-    source: 'parliament.gov.np',
-  },
-  {
-    id: 'alert-004',
-    priority: 'high' as const,
-    ministry: 'Ministry of Home Affairs',
-    title: 'CIAA investigation opened into land acquisition irregularities',
-    description: 'Commission for Investigation of Abuse of Authority opened case into alleged land grabs in Pokhara Metropolitan area linked to RSP infrastructure pledges.',
-    date: '2026-03-25T11:00:00Z',
-    source: 'ciaa.gov.np',
-  },
-  {
-    id: 'alert-005',
-    priority: 'low' as const,
-    ministry: 'National Assembly',
-    title: 'Budget 2083/84 approved — Rs. 1.79 trillion',
-    description: '175 Ayes, 42 Nays. Highest infrastructure allocation in Nepal\'s history. Includes Rs. 240 billion for Melamchi Phase 2 and Kathmandu metro rail.',
-    date: '2026-03-24T15:00:00Z',
-    source: 'mof.gov.np',
-  },
-]
-
-// ─── Activities ───────────────────────────────────────────────────────────────
 
 export const MOCK_ACTIVITIES: Activity[] = [
   {
@@ -3399,44 +3348,6 @@ export const MOCK_ACTIVITIES: Activity[] = [
   },
 ]
 
-// ─── Misconduct ───────────────────────────────────────────────────────────────
-
-export const MOCK_MISCONDUCT: MisconductRecord[] = [
-  {
-    id: 'misc-001',
-    mpId: 'kp-sharma-oli',
-    name: 'K.P. Sharma Oli',
-    allegation: 'Social media suppression ordinance during Gen-Z protests',
-    status: 'under_investigation',
-    dateReported: '2025-09-15',
-    source: 'Commission for the Investigation of Abuse of Authority',
-    description: 'CIAA investigating former PM Oli\'s role in ordering social media ban during the Gen-Z protests that led to 19 student deaths in September 2025.',
-    severity: 'high',
-  },
-  {
-    id: 'misc-002',
-    mpId: 'rabi-lamichhane',
-    name: 'Rabi Lamichhane',
-    allegation: 'Cooperative Sector Financial Scandal',
-    status: 'under_investigation',
-    dateReported: '2024-08-01',
-    source: 'Supreme Court',
-    description: 'Supreme Court investigation into alleged diversion of cooperative depositor funds. Lamichhane previously resigned as Home Minister in 2023 over this case. Returned to politics after acquittal on procedural grounds.',
-    severity: 'high',
-  },
-  {
-    id: 'misc-003',
-    name: 'Former Education Ministry Officials',
-    allegation: 'Textbook Procurement Irregularities',
-    status: 'convicted',
-    dateReported: '2025-02-10',
-    source: 'Special Court',
-    description: 'Three former education ministry officials convicted for NPR 2.3 billion irregular procurement of school textbooks. Sentenced to 7 years each.',
-    severity: 'high',
-  },
-]
-
-// ─── Social Posts ─────────────────────────────────────────────────────────────
 
 export const MOCK_SOCIAL_POSTS: SocialPost[] = [
   {

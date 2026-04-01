@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Users,
-  Shield, Radio, Share2, Cpu, MapPin, Activity,
+  Shield, Radio, Cpu, MapPin, Activity,
   Zap, ChevronRight, CheckSquare, Sparkles
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
@@ -13,36 +13,35 @@ const nav = [
   {
     group: 'Core',
     items: [
-      { href: '/',           icon: LayoutDashboard, label: 'Dashboard',         labelNe: 'ड्यासबोर्ड' },
-      { href: '/activity',  icon: Activity,        label: 'Activity Feed',      labelNe: 'गतिविधि' },
-      { href: '/find-my-mp', icon: MapPin,          label: 'Find My MP',         labelNe: 'मेरो सांसद' },
+      { href: '/',          icon: LayoutDashboard, label: 'Dashboard',       labelNe: 'ड्यासबोर्ड' },
+      { href: '/activity',  icon: Activity,        label: 'Activity Feed',   labelNe: 'गतिविधि' },
+      { href: '/promises',  icon: CheckSquare,     label: 'Promises',        labelNe: '१०० बुँदे वाचा' },
     ]
   },
   {
     group: 'Legislature',
     items: [
-      { href: '/bills',      icon: FileText,  label: 'Bills Tracker',    labelNe: 'विधेयक' },
+      { href: '/bills',      icon: FileText, label: 'Bills Tracker',    labelNe: 'विधेयक' },
+      { href: '/find-my-mp', icon: MapPin,   label: 'Find My MP',       labelNe: 'मेरो सांसद' },
     ]
   },
   {
     group: 'Members',
     items: [
-      { href: '/members',    icon: Users,  label: 'All MPs',          labelNe: 'सांसद सूची' },
-      { href: '/ministers',  icon: Shield, label: 'Cabinet Ministers', labelNe: 'मन्त्रिपरिषद' },
+      { href: '/members',   icon: Users,  label: 'All MPs',          labelNe: 'सांसद सूची' },
+      { href: '/ministers', icon: Shield, label: 'Cabinet Ministers', labelNe: 'मन्त्रिपरिषद' },
     ]
   },
   {
     group: 'Accountability',
     items: [
-      { href: '/misconduct', icon: Zap,          label: 'Misconduct DB',   labelNe: 'दुर्व्यवहार' },
-      { href: '/promises',   icon: CheckSquare,  label: 'Promises',        labelNe: '१०० बुँदे वाचा' },
+      { href: '/misconduct', icon: Zap, label: 'Misconduct DB', labelNe: 'दुर्व्यवहार' },
     ]
   },
   {
-    group: 'Automation',
+    group: 'System',
     items: [
-      { href: '/social', icon: Share2, label: 'Social Posts',    labelNe: 'सामाजिक' },
-      { href: '/system', icon: Cpu,    label: 'System Status',   labelNe: 'प्रणाली' },
+      { href: '/system', icon: Cpu, label: 'System Status', labelNe: 'प्रणाली' },
     ]
   },
 ]
