@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MOCK_ACTIVITIES, REAL_MPs } from '@/lib/nepal-data'
+import { REAL_MPs } from '@/lib/nepal-data'
 import { fetchRecentActivities } from '@/lib/supabase'
 import type { Activity as ActivityType } from '@/lib/supabase'
-import { TrendingUp, AlertTriangle, FileText, Users, ExternalLink, Zap, Newspaper } from 'lucide-react'
+import { TrendingUp, FileText, Users, ExternalLink, Zap, Newspaper, Clock } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
 /* ─── Chamber Composition Heatmap ──────────────────── */
@@ -242,9 +242,7 @@ function ActivityFeed() {
     gazette_notice:  'var(--blue)',
   }
 
-  const displayItems = (loading || items.length === 0)
-    ? MOCK_ACTIVITIES.slice(0, 8) as unknown as ActivityType[]
-    : items
+  const displayItems = items
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -293,9 +291,24 @@ function ActivityFeed() {
           </div>
         )
       })}
-      {loading && items.length === 0 && (
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.5rem' }}>
-          Loading live activity…
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} style={{
+              height: 48, borderRadius: 8,
+              background: 'var(--surface-3)',
+              opacity: 1 - i * 0.15,
+              animation: 'pulse-skeleton 1.5s ease-in-out infinite',
+              animationDelay: `${i * 0.1}s`,
+            }} />
+          ))}
+          <style>{`@keyframes pulse-skeleton { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+        </div>
+      )}
+      {!loading && items.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+          <Clock size={18} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
+          No recent activity yet
         </div>
       )}
     </div>
@@ -450,42 +463,26 @@ export default function DashboardPage() {
           {/* Quick stats + AI analysis */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: 0 }}>
             <div className="card animate-fade-up">
-              <div className="section-label" style={{ marginBottom: '0.875rem' }}>Parliament Stats</div>
+              <div className="section-label" style={{ marginBottom: '0.875rem' }}>Parliament Status</div>
               {[
                 { label: 'Speaker', value: 'Indira Rana', color: 'var(--text-primary)' },
                 { label: 'Cabinet Ministers', value: '17', color: 'var(--amber)' },
                 { label: 'Session', value: 'Monsoon 2083', color: 'var(--text-primary)' },
-                { label: 'Bills This Session', value: '23', color: 'var(--emerald)' },
-                { label: 'Avg Attendance', value: '81.2%', color: 'var(--indigo)' },
-                { label: 'Women MPs', value: '91 (33.1%)', color: 'var(--text-accent)' },
+                { label: 'Women MPs', value: `${REAL_MPs.filter(m => m.gender === 'Female').length} (${((REAL_MPs.filter(m => m.gender === 'Female').length / 275) * 100).toFixed(1)}%)`, color: 'var(--text-accent)' },
               ].map(s => (
                 <div key={s.label} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '0.55rem 0',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.02)',
+                  borderBottom: '1px solid var(--border)',
                   fontSize: '0.78rem',
+                  gap: '0.5rem',
                 }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{s.label}</span>
-                  <span style={{ fontWeight: 700, color: s.color, fontVariantNumeric: 'tabular-nums' }}>{s.value}</span>
+                  <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{s.label}</span>
+                  <span style={{ fontWeight: 700, color: s.color, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{s.value}</span>
                 </div>
               ))}
             </div>
 
-            {/* AI Analysis Glass Card */}
-            <div className="card card-indigo animate-fade-up" style={{
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(139, 92, 246, 0.02))',
-            }}>
-              <div className="section-label" style={{ marginBottom: '0.625rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ fontSize: '0.8rem' }}>◇</span>
-                AI Analysis
-              </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-                RSP's supermajority enables single-party legislation.
-                Early indicators show focus on <strong style={{ color: 'var(--text-primary)' }}>anti-corruption</strong> and
-                <strong style={{ color: 'var(--text-primary)' }}> digital governance</strong> reforms.
-                Accountability monitoring at full capacity.
-              </p>
-            </div>
           </div>
         </div>
       </div>

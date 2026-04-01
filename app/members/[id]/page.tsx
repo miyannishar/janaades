@@ -1,149 +1,126 @@
 'use client'
 
-import { MOCK_MPs as _MOCK_MPs } from '@/lib/nepal-data'
+import { useState, useEffect } from 'react'
+import type { ExcelMP } from '@/lib/excel-mps'
 import { notFound } from 'next/navigation'
-import { Mail, Phone, ChevronLeft, FileText, History } from 'lucide-react'
+import { ChevronLeft, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import type { MP } from '@/lib/types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const MOCK_MPs = _MOCK_MPs as any[] as MP[]
+const PARTY_COLORS: Record<string, string> = {
+  RSP: '#6366f1', NC: '#3b82f6', UML: '#ef4444',
+  MAOIST: '#dc2626', RPP: '#f97316', JSP: '#10b981',
+  CPNUS: '#f59e0b', NMKP: '#8b5cf6',
+}
+function partyColor(short: string) { return PARTY_COLORS[short] ?? '#6b7280' }
 
-
-
-// Add unwrap for Next.js 16
 function ProfilePageInternal({ id }: { id: string }) {
-  const mp = MOCK_MPs.find(m => m.id === id)
+  const [mp, setMp] = useState<ExcelMP | null | undefined>(undefined) // undefined = loading
 
-  if (!mp) {
-    return notFound()
+  useEffect(() => {
+    import('@/lib/mps-excel.json').then(m => {
+      const found = (m.default as ExcelMP[]).find(x => x.id === id)
+      setMp(found ?? null)
+    })
+  }, [id])
+
+  if (mp === undefined) {
+    // Loading skeleton
+    return (
+      <div className="page-container">
+        <div style={{ height: 280, borderRadius: 12, background: 'var(--surface-3)', animation: 'pulse-skeleton 1.5s ease-in-out infinite' }} />
+        <style>{`@keyframes pulse-skeleton { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+      </div>
+    )
   }
 
-  const attendanceType = mp.attendance >= 85 ? 'green' : mp.attendance >= 70 ? 'amber' : 'crimson'
+  if (mp === null) return notFound()
+
+  const color = partyColor(mp.partyShort)
 
   return (
     <div className="page-container">
-      <Link href="/members" className="btn-ghost" style={{ marginBottom: '1.5rem', padding: 0 }}>
+      <Link href="/members" className="btn-ghost" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
         <ChevronLeft size={16} /> Back to Members
       </Link>
 
-      <div className="card-elevated animate-fade-in" style={{ marginBottom: '2rem', borderTop: `4px solid ${mp.partyShort === 'RSP' ? 'var(--primary-container)' : 'var(--tertiary)'}` }}>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-          {/* Avatar */}
+      {/* Hero card */}
+      <div className="card-elevated animate-fade-in" style={{ marginBottom: '1.5rem', borderTop: `3px solid ${color}` }}>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* Avatar initial */}
           <div style={{
-            width: 120, height: 120, borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--surface-container-high), var(--surface-container-lowest))',
+            width: 80, height: 80, borderRadius: '50%', flexShrink: 0,
+            background: `${color}18`, border: `2px solid ${color}44`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '3rem', border: '4px solid var(--outline-variant)', flexShrink: 0, color: 'var(--on-surface-variant)'
+            fontSize: '2rem', fontWeight: 900, color,
           }}>
             {mp.name.charAt(0)}
           </div>
 
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <h1 className="display-md" style={{ marginBottom: '0.25rem' }}>{mp.name}</h1>
-                <div className="font-devanagari" style={{ fontSize: '1.25rem', color: 'var(--outline)', marginBottom: '1rem' }}>
-                  {mp.nameNepali}
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  <span className={`badge ${mp.partyShort === 'RSP' ? 'badge-party-rsp' : 'badge-party'}`}>{mp.party} ({mp.partyShort})</span>
-                  <span className="badge badge-status">📍 {mp.constituency.name}</span>
-                  <span className="badge badge-status">{mp.chamber} — {mp.electionType}</span>
-                </div>
-              </div>
-              {mp.isMinister && (
-                <div style={{ padding: '0.75rem 1rem', background: 'var(--amber-soft)', border: '1px solid var(--amber)', borderRadius: '0.5rem', color: 'var(--amber)', fontWeight: 700, textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Role</div>
-                  <div>{mp.ministryPortfolio}</div>
-                </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+              Seat #{mp.id}
+            </div>
+            <h1 className="heading-xl" style={{ marginBottom: '0.75rem' }}>{mp.name}</h1>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+              <span style={{
+                padding: '0.25rem 0.6rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 800,
+                background: `${color}22`, color, letterSpacing: '0.04em',
+              }}>
+                {mp.party} ({mp.partyShort})
+              </span>
+              <span className="chip chip-muted">
+                <MapPin size={10} style={{ display: 'inline' }} /> {mp.district}
+              </span>
+              <span className="chip chip-indigo">{mp.electionType}</span>
+              <span className="chip chip-muted">{mp.province}</span>
+              {mp.inclusiveGroup && (
+                <span className="chip chip-muted">{mp.inclusiveGroup}</span>
               )}
             </div>
 
-            <p style={{ fontSize: '1rem', color: 'var(--on-surface-variant)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              {mp.bio}
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', borderTop: '1px solid var(--outline-variant)', paddingTop: '1.5rem' }}>
+            {/* Stats row — only show real data */}
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
               <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: `var(--${attendanceType})` }}>{mp.attendance}%</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--outline)', textTransform: 'uppercase', fontWeight: 600 }}>Attendance</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--tertiary)' }}>{mp.billsSponsored}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--outline)', textTransform: 'uppercase', fontWeight: 600 }}>Bills Sponsored</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--amber)' }}>{mp.questionsAsked}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--outline)', textTransform: 'uppercase', fontWeight: 600 }}>Questions Asked</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--green)' }}>{mp.votesParticipated}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--outline)', textTransform: 'uppercase', fontWeight: 600 }}>Votes Participated</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 900, color: mp.gender === 'Female' ? 'var(--text-accent)' : 'var(--text-secondary)' }}>
+                  {mp.gender === 'Female' ? '♀ Female' : '♂ Male'}
+                </div>
+                <div className="section-label" style={{ marginTop: '0.2rem' }}>Gender</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-        {/* Left Col */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-           <div className="card">
-             <h2 className="headline" style={{ marginBottom: '1rem' }}>
-               <FileText size={18} style={{ display: 'inline', marginRight: '0.5rem' }}/> 
-               Sponsored Bills
-             </h2>
-             {mp.billsSponsored > 0 ? (
-               <div style={{ color: 'var(--outline)' }}>
-                 Bills tracking to be integrated from full DB schema. Currently {mp.billsSponsored} bills recorded.
-               </div>
-             ) : (
-               <div style={{ color: 'var(--outline)' }}>No bills sponsored in current session.</div>
-             )}
-           </div>
-
-           <div className="card">
-             <h2 className="headline" style={{ marginBottom: '1rem' }}>
-               <History size={18} style={{ display: 'inline', marginRight: '0.5rem' }}/> 
-               Recent Voting Record
-             </h2>
-             {mp.votingRecord && mp.votingRecord.length > 0 ? (
-               <div>...</div>
-             ) : (
-               <div style={{ color: 'var(--outline)' }}>Voting records currently being synchronized.</div>
-             )}
-           </div>
+      {/* Detail grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+        <div className="card animate-fade-up">
+          <div className="section-label" style={{ marginBottom: '0.875rem' }}>Constituency Details</div>
+          {[
+            { label: 'Province',         value: mp.province },
+            { label: 'District',         value: mp.district },
+            { label: 'Election Type',    value: mp.electionType },
+            { label: 'Inclusive Group',  value: mp.inclusiveGroup ?? '—' },
+          ].map(r => (
+            <div key={r.label} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '0.5rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.78rem', gap: '0.5rem',
+            }}>
+              <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{r.label}</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'right' }}>{r.value}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Right Col */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="card">
-            <h2 className="headline" style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Contact Information</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Official Email</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                  <Mail size={16} /> <a href={`mailto:${mp.email}`} style={{ color: 'inherit', textDecoration: 'none' }}>{mp.email}</a>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Phone/Office</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
-                  <Phone size={16} /> {mp.phone}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h2 className="headline" style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Committees</h2>
-            <ul style={{ paddingLeft: '1.25rem', color: 'var(--on-surface-variant)', lineHeight: 1.6 }}>
-              {mp.committees.map(c => (
-                <li key={c} style={{ marginBottom: '0.5rem' }}>{c}</li>
-              ))}
-            </ul>
+        <div className="card animate-fade-up">
+          <div className="section-label" style={{ marginBottom: '0.875rem' }}>Performance Tracking</div>
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '1.5rem 0', color: 'var(--text-muted)', textAlign: 'center', gap: '0.5rem',
+          }}>
+            <div style={{ fontSize: '0.8rem' }}>Voting &amp; attendance records coming soon</div>
+            <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Parliament.gov.np integration in progress</div>
           </div>
         </div>
       </div>
