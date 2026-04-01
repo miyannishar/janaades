@@ -1043,6 +1043,16 @@ body::before {
    RESPONSIVE — Breakpoints
 ═══════════════════════════════════════════════════════ */
 
+/* ── Dashboard grid defaults (desktop) ─────────────── */
+/* gridTemplateColumns on bottom grid moved from inline style to CSS
+   so media queries can reliably override it */
+.dashboard-bottom-grid  { grid-template-columns: 1fr 360px; }
+
+/* Prevent grid children from blowing out their column */
+.dashboard-hero-grid   > *,
+.dashboard-main-grid   > *,
+.dashboard-bottom-grid > * { min-width: 0; }
+
 /* ── Tablet (1024px) ───────────────────────────────── */
 @media (max-width: 1024px) {
   .dashboard-hero-grid    { grid-template-columns: repeat(2, 1fr) !important; }

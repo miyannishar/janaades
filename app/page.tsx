@@ -431,10 +431,10 @@ export default function DashboardPage() {
 
         {/* Bottom row */}
         <div className="dashboard-bottom-grid"
-          style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '1rem' }}>
+          style={{ display: 'grid', gap: '1rem' }}>
 
           {/* Legislative Pulse */}
-          <div className="card animate-fade-up">
+          <div className="card animate-fade-up" style={{ minWidth: 0, overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <div>
                 <div className="section-label">Legislative Pulse</div>
@@ -448,7 +448,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick stats + AI analysis */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: 0 }}>
             <div className="card animate-fade-up">
               <div className="section-label" style={{ marginBottom: '0.875rem' }}>Parliament Stats</div>
               {[
