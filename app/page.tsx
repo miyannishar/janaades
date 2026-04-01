@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MOCK_ALERTS, MOCK_ACTIVITIES, MOCK_SCRAPING_JOBS, MOCK_STATS, REAL_MPs } from '@/lib/nepal-data'
+import { MOCK_ACTIVITIES, REAL_MPs } from '@/lib/nepal-data'
 import { fetchRecentActivities } from '@/lib/supabase'
 import type { Activity as ActivityType } from '@/lib/supabase'
-import { TrendingUp, AlertTriangle, CheckCircle2, Zap, FileText, Users, ExternalLink } from 'lucide-react'
+import { TrendingUp, AlertTriangle, FileText, Users, ExternalLink, Zap, Newspaper } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
 /* ─── Chamber Composition Heatmap ──────────────────── */
@@ -62,74 +62,159 @@ function SeatHeatmap() {
   )
 }
 
-/* ─── Alert Card ─────────────────────────────────────── */
-function AlertCard({ alert }: { alert: typeof MOCK_ALERTS[0] }) {
-  const cls = alert.priority === 'critical' ? 'card-alert' : alert.priority === 'high' ? 'card-warn' : 'card-ok'
-  const Icon = alert.priority === 'critical' ? Zap : alert.priority === 'high' ? AlertTriangle : CheckCircle2
-  const accentColor = alert.priority === 'critical' ? 'var(--crimson)' : alert.priority === 'high' ? 'var(--amber)' : 'var(--emerald)'
+/* ─── High-priority live activity feed ───────────────── */
+function PriorityFeed() {
+  const [items, setItems] = useState<ActivityType[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    import('@/lib/supabase').then(({ supabase }) => {
+      supabase
+        .from('activities')
+        .select('*')
+        .eq('priority', 'high')
+        .order('date', { ascending: false })
+        .limit(6)
+        .then(({ data }) => {
+          setItems((data ?? []) as ActivityType[])
+          setLoading(false)
+        })
+    })
+  }, [])
+
+  const typeColor: Record<string, string> = {
+    news:            'var(--blue)',
+    bill_introduced: 'var(--indigo)',
+    bill_passed:     'var(--emerald)',
+    bill_failed:     'var(--crimson)',
+    vote_held:       'var(--amber)',
+    misconduct:      'var(--crimson)',
+    minister_action: 'var(--amber)',
+    social:          'var(--indigo)',
+    gazette_notice:  'var(--blue)',
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{
+            height: 52, borderRadius: 8,
+            background: 'var(--surface-3)',
+            animation: 'pulse-skeleton 1.5s ease-in-out infinite',
+            animationDelay: `${i * 0.1}s`,
+          }} />
+        ))}
+      </div>
+    )
+  }
+
+  if (items.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+        <Newspaper size={20} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
+        No high-priority events yet
+      </div>
+    )
+  }
 
   return (
-    <div className={`card ${cls}`} style={{ marginBottom: '0.5rem', padding: '0.875rem 1rem' }}>
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          background: `${accentColor}11`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Icon size={13} style={{ color: accentColor }} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-            <span className={`chip ${alert.priority === 'critical' ? 'chip-critical' : alert.priority === 'high' ? 'chip-warn' : 'chip-ok'}`}>
-              {alert.priority.toUpperCase()}
-            </span>
-            <span className="chip chip-muted">{alert.ministry}</span>
-            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>
-              {formatDistanceToNow(new Date(alert.date), { addSuffix: true })}
-            </span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+      {items.map(a => {
+        const color = typeColor[a.type] || 'var(--text-muted)'
+        return (
+          <div
+            key={a.id}
+            onClick={() => a.source_url && window.open(a.source_url, '_blank')}
+            style={{
+              display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
+              padding: '0.6rem 0.75rem', borderRadius: 8,
+              borderLeft: `2px solid ${color}`,
+              background: 'rgba(255,255,255,0.015)',
+              cursor: a.source_url ? 'pointer' : 'default',
+              transition: 'background 150ms',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.015)')}
+          >
+            <Zap size={11} style={{ color, flexShrink: 0, marginTop: 3 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)',
+                lineHeight: 1.35, marginBottom: '0.15rem',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{a.title}</div>
+              <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>
+                {formatDistanceToNow(new Date(a.date), { addSuffix: true })}
+                {a.ministry && <span style={{ color: 'var(--text-accent)', marginLeft: '0.35rem' }}>· {a.ministry}</span>}
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.2rem', lineHeight: 1.35 }}>
-            {alert.title}
-          </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            {alert.description}
-          </div>
-        </div>
-      </div>
+        )
+      })}
+      <style>{`@keyframes pulse-skeleton { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
     </div>
   )
 }
 
-/* ─── Intelligence Scraper Status ────────────────────── */
-function ScraperStatus() {
+/* ─── Party Breakdown Panel ───────────────────────────── */
+function PartyBreakdown() {
+  const partyData = [
+    { short: 'RSP',    full: 'Rastriya Swatantra Party',   seats: 182, color: 'var(--rsp)' },
+    { short: 'NC',     full: 'Nepali Congress',             seats: 46,  color: 'var(--nc)' },
+    { short: 'UML',    full: 'CPN-UML',                     seats: 29,  color: 'var(--uml)' },
+    { short: 'MAOIST', full: 'CPN (Maoist Centre)',         seats: 11,  color: '#e05c5c' },
+    { short: 'RPP',    full: 'Rastriya Prajatantra Party',  seats: 7,   color: '#c084fc' },
+  ]
+  const total = 275
+  const female = REAL_MPs.filter(m => m.gender === 'Female').length
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-      {MOCK_SCRAPING_JOBS.map((job, i) => (
-        <div key={i} style={{
-          display: 'flex', alignItems: 'center', gap: '0.75rem',
-          padding: '0.6rem 0.75rem',
-          borderRadius: 8,
-          background: 'rgba(255, 255, 255, 0.015)',
-          transition: 'all 150ms ease',
-        }}>
-          <span className={`dot dot-${job.status === 'operational' ? 'live' : job.status === 'warning' ? 'warn' : 'dead'}`} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {partyData.map(p => (
+        <div key={p.short} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+            background: p.color, boxShadow: `0 0 5px ${p.color}55`,
+          }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {job.url}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)' }}>{p.short}</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: p.color, fontVariantNumeric: 'tabular-nums' }}>{p.seats}</span>
             </div>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '1px' }}>
-              synced {formatDistanceToNow(new Date(job.lastRun), { addSuffix: true })}
+            <div style={{ height: 4, borderRadius: 99, background: 'var(--surface-4)', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 99,
+                width: `${(p.seats / total) * 100}%`,
+                background: `linear-gradient(90deg, ${p.color}, ${p.color}aa)`,
+                transition: 'width 600ms ease',
+              }} />
             </div>
           </div>
-          <span className={`chip ${job.status === 'operational' ? 'chip-ok' : job.status === 'warning' ? 'chip-warn' : 'chip-critical'}`}
-            style={{ flexShrink: 0 }}>
-            {job.status === 'operational' ? 'LIVE' : job.status.toUpperCase()}
-          </span>
-          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-            {job.itemsFound}
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', width: 36, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+            {((p.seats / total) * 100).toFixed(1)}%
           </span>
         </div>
       ))}
+
+      <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '1rem' }}>
+        <div style={{ flex: 1 }}>
+          <div className="section-label">Women MPs</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--emerald)', fontVariantNumeric: 'tabular-nums' }}>
+            {female}
+            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: 4 }}>
+              ({((female / total) * 100).toFixed(1)}%)
+            </span>
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className="section-label">Supermajority</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--rsp)', fontVariantNumeric: 'tabular-nums' }}>
+            66.2%
+            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: 4 }}>RSP</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -157,7 +242,6 @@ function ActivityFeed() {
     gazette_notice:  'var(--blue)',
   }
 
-  // While loading or empty, fall back to mock
   const displayItems = (loading || items.length === 0)
     ? MOCK_ACTIVITIES.slice(0, 8) as unknown as ActivityType[]
     : items
@@ -221,9 +305,6 @@ function ActivityFeed() {
 /* ─── Dashboard Page ─────────────────────────────────── */
 export default function DashboardPage() {
   const rspMPs = REAL_MPs.filter(m => m.partyShort === 'RSP').length
-  const totalAlerts = MOCK_ALERTS.length
-  const criticalAlerts = MOCK_ALERTS.filter(a => a.priority === 'critical').length
-  const liveScrapers = MOCK_SCRAPING_JOBS.filter(j => j.status === 'operational').length
 
   return (
     <div>
@@ -250,25 +331,25 @@ export default function DashboardPage() {
       </div>
 
       <div className="page-container">
-        {/* Hero Stats — Glass Stat Cards */}
+        {/* Hero Stats */}
         <div className="dashboard-hero-grid stagger"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.75rem' }}>
           {[
             {
               number: '275', label: 'Total Seats', delta: 'Pratinidhi Sabha', type: 'info',
-              accentColor: 'var(--indigo)', icon: <Users size={16} />
+              accentColor: 'var(--indigo)', icon: <Users size={16} />,
             },
             {
               number: '182', label: 'RSP Seats', delta: '↑ Supermajority · 66.2%', type: 'up',
-              accentColor: 'var(--rsp)', icon: <TrendingUp size={16} />
+              accentColor: 'var(--rsp)', icon: <TrendingUp size={16} />,
             },
             {
-              number: String(totalAlerts), label: 'Active Alerts', delta: `${criticalAlerts} CRITICAL`, type: 'down',
-              accentColor: 'var(--crimson)', icon: <AlertTriangle size={16} />
+              number: String(rspMPs), label: 'RSP MPs', delta: 'FPTP + PR seats', type: 'up',
+              accentColor: 'var(--emerald)', icon: <Users size={16} />,
             },
             {
               number: '47', label: 'Bills Tracked', delta: '8 passed this session', type: 'up',
-              accentColor: 'var(--amber)', icon: <FileText size={16} />
+              accentColor: 'var(--amber)', icon: <FileText size={16} />,
             },
           ].map(s => (
             <div key={s.label} className="stat-card animate-fade-up" style={{ '--accent-color': s.accentColor } as React.CSSProperties}>
@@ -305,36 +386,33 @@ export default function DashboardPage() {
             <SeatHeatmap />
           </div>
 
-          {/* Center: Priority Queue */}
+          {/* Center: High-priority live events */}
           <div className="card animate-fade-up" style={{ animationDelay: '70ms' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <div>
-                <div className="section-label">Priority Queue</div>
-                <div className="heading-sm" style={{ marginTop: '0.3rem' }}>System Alerts</div>
+                <div className="section-label">Priority Events</div>
+                <div className="heading-sm" style={{ marginTop: '0.3rem' }}>High-Priority Activity</div>
               </div>
-              <span className={`chip ${criticalAlerts > 0 ? 'chip-critical' : 'chip-ok'}`} style={{ gap: '0.4rem' }}>
-                {criticalAlerts > 0 && <span className="dot dot-dead" />}
-                {totalAlerts} ACTIVE
+              <span className="chip chip-warn" style={{ gap: '0.4rem' }}>
+                <span className="dot dot-warn" />
+                HIGH
               </span>
             </div>
-            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-              {MOCK_ALERTS.map((a, i) => <AlertCard key={i} alert={a} />)}
-            </div>
+            <PriorityFeed />
           </div>
 
-          {/* Right: Data Sources */}
+          {/* Right: Party Breakdown */}
           <div className="card dashboard-right-col animate-fade-up" style={{ animationDelay: '140ms' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <div>
-                <div className="section-label">Inbound Telemetry</div>
-                <div className="heading-sm" style={{ marginTop: '0.3rem' }}>Data Sources</div>
+                <div className="section-label">Parliament Makeup</div>
+                <div className="heading-sm" style={{ marginTop: '0.3rem' }}>Party Breakdown</div>
               </div>
-              <span className="chip chip-ok" style={{ gap: '0.4rem' }}>
-                <span className="dot dot-live" />
-                {liveScrapers} LIVE
+              <span className="chip chip-ok">
+                {REAL_MPs.length} MPs
               </span>
             </div>
-            <ScraperStatus />
+            <PartyBreakdown />
           </div>
         </div>
 
@@ -356,7 +434,7 @@ export default function DashboardPage() {
             <ActivityFeed />
           </div>
 
-          {/* Quick stats panel */}
+          {/* Quick stats + AI analysis */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="card animate-fade-up">
               <div className="section-label" style={{ marginBottom: '0.875rem' }}>Parliament Stats</div>
