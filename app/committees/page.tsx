@@ -1,14 +1,17 @@
 'use client'
 
 import { Building2 } from 'lucide-react'
+import { PageHeader } from '@/components/organisms/PageHeader'
 
 export default function CommitteesPage() {
   return (
     <div className="page-container">
-      <div style={{ marginBottom: '2rem' }} className="animate-fade-in">
-        <h1 className="display-md" style={{ marginBottom: '0.25rem' }}>Parliamentary Committees</h1>
-        <p className="body-lg">Standing and special committees of Nepal's House of Representatives and National Assembly.</p>
-      </div>
+      <PageHeader
+        label="Organization"
+        title="संसदीय समिति"
+        subtitle="Parliamentary Committees"
+        meta="Standing and special committees of Nepal's Parliament"
+      />
 
       <div className="card animate-fade-in">
         <div style={{

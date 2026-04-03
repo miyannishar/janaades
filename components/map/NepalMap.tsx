@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { MP } from '@/lib/types'
+import type { ExcelMP } from '@/lib/excel-mps'
 
 interface NepalMapProps {
-  mps: MP[]
-  selectedMP: MP | null
-  onSelectMP: (mp: MP) => void
+  mps: ExcelMP[]
+  selectedMP: ExcelMP | null
+  activePin: { lat: number; lng: number } | null
+  onSelectPin: (pin: { lat: number; lng: number } | null) => void
 }
 
 // Province bounding boxes (simplified for display)
@@ -20,7 +21,7 @@ const PROVINCE_CENTERS: Record<string, { lat: number; lng: number; label: string
   Sudurpashchim: { lat: 29.30, lng: 81.00, label: 'Sudurpashchim' },
 }
 
-export default function NepalMap({ mps, selectedMP, onSelectMP }: NepalMapProps) {
+export default function NepalMap({ mps, selectedMP, activePin, onSelectPin }: NepalMapProps) {
   const mapRef = useRef<any>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<any[]>([])
@@ -70,37 +71,50 @@ export default function NepalMap({ mps, selectedMP, onSelectMP }: NepalMapProps)
         }).addTo(map)
       })
 
-      // MP markers
+      // MP markers (Grouped by location)
+      const groupedMps = new Map<string, ExcelMP[]>()
       mps.forEach(mp => {
-        if (!mp.constituency.lat || mp.constituency.id === 0) return
+        if (mp.lat === null || mp.lng === null) return
+        const key = `${mp.lat},${mp.lng}`
+        if (!groupedMps.has(key)) groupedMps.set(key, [])
+        groupedMps.get(key)!.push(mp)
+      })
 
-        const isSelected = selectedMP?.id === mp.id
-        const color = isSelected ? '#DC2626' : mp.partyShort === 'RSP' ? '#ff6b6b' : '#90cdff'
+      groupedMps.forEach((group) => {
+        const mp = group[0]
+        const isSelected = activePin ? (activePin.lat === mp.lat && activePin.lng === mp.lng) : (selectedMP && group.some(m => m.id === selectedMP.id))
+        
+        const partyCounts = new Map<string, number>()
+        group.forEach(m => partyCounts.set(m.color, (partyCounts.get(m.color) ?? 0) + 1))
+        const domColor = [...partyCounts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+        const color = isSelected ? '#DC2626' : domColor
+
+        const size = isSelected ? 20 : Math.min(10 + group.length * 2, 24)
 
         const icon = L.divIcon({
           className: '',
           html: `<div style="
-            width:12px;height:12px;border-radius:50%;
+            width:${size}px;height:${size}px;border-radius:50%;
             background:${color};
             border:2px solid rgba(255,255,255,0.4);
             box-shadow:0 0 6px ${color}88;
             cursor:pointer;
-          "></div>`,
-          iconAnchor: [6, 6],
+            display:flex;align-items:center;justify-content:center;
+            font-family:Inter,sans-serif;font-size:10px;font-weight:bold;color:white;
+            transition: all 150ms ease;
+            ${isSelected ? 'transform: scale(1.3); z-index: 1000; border-color: white;' : 'transform: scale(1.0);'}
+          ">${group.length > 1 ? group.length : ''}</div>`,
+          iconAnchor: [size/2, size/2],
         })
 
-        const marker = L.marker([mp.constituency.lat, mp.constituency.lng], { icon })
+        const marker = L.marker([mp.lat!, mp.lng!], { icon })
           .addTo(map)
-          .bindPopup(`
-            <div style="font-family:Inter,sans-serif;padding:2px;">
-              <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${mp.name}</div>
-              <div style="font-size:11px;color:#666;">${mp.constituency.name}</div>
-              <div style="font-size:11px;color:#dc2626;font-weight:600;">${mp.party}</div>
-            </div>
-          `, { maxWidth: 200 })
-          .on('click', () => onSelectMP(mp))
 
-        markersRef.current.push(marker)
+        marker.on('click', () => {
+          onSelectPin({ lat: mp.lat!, lng: mp.lng! })
+        })
+
+        markersRef.current.push({ marker, group })
       })
     })
 
@@ -112,17 +126,55 @@ export default function NepalMap({ mps, selectedMP, onSelectMP }: NepalMapProps)
       }
       markersRef.current = []
     }
-  }, []) // only run once
+  }, [mps]) // run again if mps list changes
 
   // Update marker styles when selection changes
   useEffect(() => {
-    if (!mapRef.current) return
-    // Re-render markers (simplified — on real app would update individual markers)
-  }, [selectedMP])
+    if (!mapRef.current || markersRef.current.length === 0) return
+    import('leaflet').then(L => {
+      markersRef.current.forEach(({ marker, group }) => {
+        const mp = group[0]
+        const isSelected = activePin ? (activePin.lat === mp.lat && activePin.lng === mp.lng) : (selectedMP && group.some((m: ExcelMP) => m.id === selectedMP.id))
+        
+        const partyCounts = new Map<string, number>()
+        group.forEach((m: ExcelMP) => partyCounts.set(m.color, (partyCounts.get(m.color) ?? 0) + 1))
+        const domColor = [...partyCounts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+        const color = isSelected ? '#DC2626' : domColor
+
+        const size = isSelected ? 20 : Math.min(10 + group.length * 2, 24)
+
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="
+            width:${size}px;height:${size}px;border-radius:50%;
+            background:${color};
+            border:2px solid rgba(255,255,255,0.4);
+            box-shadow:0 0 6px ${color}88;
+            cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            font-family:Inter,sans-serif;font-size:10px;font-weight:bold;color:white;
+            transition: all 150ms ease;
+            ${isSelected ? 'transform: scale(1.3); z-index: 1000; border-color: white;' : 'transform: scale(1.0);'}
+          ">${group.length > 1 ? group.length : ''}</div>`,
+          iconAnchor: [size/2, size/2],
+        })
+        marker.setIcon(icon)
+
+        if (isSelected) {
+          marker.setZIndexOffset(1000)
+        } else {
+          marker.setZIndexOffset(0)
+        }
+      })
+    })
+  }, [selectedMP, activePin])
 
   return (
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <style>{`
+        .mp-popup-row:hover { background: rgba(255,255,255,0.1); border-radius: 4px; }
+      `}</style>
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
     </>
   )

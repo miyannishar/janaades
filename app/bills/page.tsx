@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import type { Bill, BillStatus } from '@/lib/types'
 import {
   FileText, Search, ChevronRight, Calendar, Tag,
-  ExternalLink, Loader2, AlertCircle, Download, Building, Users
+  ExternalLink, Loader2, AlertCircle, Download
 } from 'lucide-react'
+import { PageHeader } from '@/components/organisms/PageHeader'
 
 // ─── Parliament pipeline stages (in order) ───────────────────────────────────
 
@@ -29,23 +30,24 @@ function BillPipeline({ status }: { status: BillStatus }) {
   const current = STAGE_IDX[status] ?? 0
 
   return (
-    <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', gap: 1 }}>
+    <div style={{ display: 'flex', borderRadius: 0, border: '1px solid var(--border)', overflow: 'hidden', marginTop: '0.75rem' }}>
       {PIPELINE.map(({ key, short }, i) => {
         const done   = !failed && i < current
         const active = !failed && i === current
         return (
           <div key={key} title={PIPELINE[i].label} style={{
-            flex: 1, padding: '3px 2px', textAlign: 'center',
-            fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.03em',
+            flex: 1, padding: '4px 2px', textAlign: 'center',
+            fontSize: '0.62rem', fontWeight: active || done ? 700 : 400,
+            borderRight: i < PIPELINE.length - 1 ? '1px solid var(--border)' : 'none',
             background: failed
-              ? (i === 0 ? 'var(--crimson-soft)' : 'var(--surface-1)')
-              : done   ? 'var(--emerald-soft)'
-              : active ? 'var(--indigo-glow)'
-              :          'var(--surface-1)',
+              ? (i === 0 ? 'var(--text)' : 'transparent')
+              : done   ? 'var(--border)'
+              : active ? 'var(--text)'
+              :          'transparent',
             color: failed
-              ? (i === 0 ? 'var(--crimson)' : 'var(--text-muted)')
-              : done   ? 'var(--emerald)'
-              : active ? 'var(--text-accent)'
+              ? (i === 0 ? 'var(--bg)' : 'var(--text-muted)')
+              : done   ? 'var(--text)'
+              : active ? 'var(--bg)'
               :          'var(--text-muted)',
           }}>
             {failed && i === 0 ? '✕' : done ? '✓' : short}
@@ -59,15 +61,15 @@ function BillPipeline({ status }: { status: BillStatus }) {
 // ─── Status chip config ───────────────────────────────────────────────────────
 
 const STATUS_META: Partial<Record<BillStatus, { cls: string; label: string }>> = {
-  introduced:               { cls: 'chip-indigo',   label: 'INTRODUCED' },
-  general_discussion:       { cls: 'chip-info',     label: 'GENERAL DISC.' },
+  introduced:               { cls: '',   label: 'INTRODUCED' },
+  general_discussion:       { cls: '',     label: 'GENERAL DISC.' },
   in_committee:             { cls: 'chip-warn',     label: 'IN COMMITTEE' },
   committee_reported:       { cls: 'chip-warn',     label: 'COMM. REPORT' },
   passed:                   { cls: 'chip-ok',       label: 'PASSED HoR' },
   passed_national_assembly: { cls: 'chip-ok',       label: 'PASSED NA' },
   repassed:                 { cls: 'chip-ok',       label: 'REPASSED' },
   authenticated:            { cls: 'chip-ok',       label: 'ENACTED ✓' },
-  failed:                   { cls: 'chip-critical', label: 'FAILED' },
+  failed:                   { cls: 'chip-error',    label: 'FAILED' },
   withdrawn:                { cls: 'chip-muted',    label: 'WITHDRAWN' },
 }
 
@@ -80,8 +82,6 @@ const PASSED_STATUSES: BillStatus[] = [
   'passed', 'passed_national_assembly', 'repassed', 'authenticated'
 ]
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function BillsPage() {
   const [bills, setBills]     = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
@@ -93,7 +93,7 @@ export default function BillsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/bills?select=*&order=created_at.desc`
+        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/bills?select=*&order=created_at.asc`
         const res = await fetch(url, {
           headers: {
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -138,207 +138,180 @@ export default function BillsPage() {
   const FILTERS = ['All', 'Active', 'Passed', 'Failed']
 
   return (
-    <div>
-      <div className="page-header">
-        <div>
-          <h1 className="heading-xl">
-            <span className="font-deva" style={{ marginRight: '0.5rem' }}>विधेयक</span>
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 400, fontSize: '1.25rem' }}>
-              / Bills Tracker
-            </span>
-          </h1>
-          <p className="text-secondary" style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
-            Current state of bills — Pratinidhi Sabha, Nepal
-          </p>
-        </div>
-      </div>
+    <div className="page-container animate-fade-up">
+      <PageHeader
+        label="Legislation"
+        title="विधेयक"
+        subtitle={`${total} Bills tracked`}
+        meta="Pratinidhi Sabha & Rashtriya Sabha"
+      />
 
-      <div className="page-container">
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '1rem' }}
-          className="stagger">
-          {[
-            { label: 'Total Bills',  value: total,   color: 'var(--indigo)' },
-            { label: 'In Progress',  value: active,  color: 'var(--amber)' },
-            { label: 'Passed HoR',   value: passed,  color: 'var(--emerald)' },
-            { label: 'Enacted',      value: enacted, color: 'var(--teal, var(--emerald))' },
-          ].map(s => (
-            <div key={s.label} className="card animate-fade-up" style={{ padding: '0.875rem 1rem' }}>
-              <div className="section-label">{s.label}</div>
-              <div style={{ fontSize: '2rem', fontWeight: 900, color: s.color, marginTop: '0.25rem', fontVariantNumeric: 'tabular-nums' }}>
-                {loading ? '—' : s.value}
-              </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 300px) 1fr', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Left Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+           {/* Filters */}
+           <div>
+             <h3 className="heading-sm" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Registry Filter</h3>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+               <input 
+                  type="text"
+                  placeholder="Search bills, ministry..."
+                  value={search} onChange={e => setSearch(e.target.value)}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--border)', fontSize: '0.85rem' }} 
+               />
+               
+               <div style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: '0.5rem' }}>Status Filter</div>
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                 {FILTERS.map(f => (
+                   <button key={f} onClick={() => setFilter(f)} style={{
+                      padding: '0.25rem 0.6rem', fontSize: '0.75rem',
+                      background: filter === f ? 'var(--text)' : 'transparent',
+                      color: filter === f ? 'var(--bg)' : 'var(--text)',
+                      border: '1px solid var(--border)', cursor: 'pointer'
+                   }}>
+                     {f}
+                   </button>
+                 ))}
+               </div>
+
+               <div style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: '0.5rem' }}>Origin Chamber</div>
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                 {(['Both', 'HOR', 'NA'] as const).map(c => (
+                   <button key={c} onClick={() => setChamber(c)} style={{
+                      padding: '0.25rem 0.6rem', fontSize: '0.75rem',
+                      background: chamber === c ? 'var(--text)' : 'transparent',
+                      color: chamber === c ? 'var(--bg)' : 'var(--text)',
+                      border: '1px solid var(--border)', cursor: 'pointer'
+                   }}>
+                     {c === 'Both' ? 'Both' : c === 'HOR' ? '🏛 HoR' : '🏟 NA'}
+                   </button>
+                 ))}
+               </div>
+             </div>
+           </div>
+
+           {/* Stats */}
+           <div>
+             <h3 className="heading-sm" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Legislation Summary</h3>
+             <table className="data-table">
+               <tbody>
+                 <tr>
+                   <td style={{ fontWeight: 600 }}>Total Drafts</td>
+                   <td style={{ textAlign: 'right' }}>{total}</td>
+                 </tr>
+                 <tr>
+                   <td style={{ fontWeight: 600 }}>In Progress</td>
+                   <td style={{ textAlign: 'right' }}>{active}</td>
+                 </tr>
+                 <tr>
+                   <td style={{ fontWeight: 600 }}>Passed HoR</td>
+                   <td style={{ textAlign: 'right' }}>{passed}</td>
+                 </tr>
+                 <tr>
+                   <td style={{ fontWeight: 600 }}>Enacted</td>
+                   <td style={{ textAlign: 'right' }}>{enacted}</td>
+                 </tr>
+               </tbody>
+             </table>
+           </div>
+
+        </div>
+
+        {/* Right Ledger */}
+        <div className="ledger-container">
+          <div className="ledger-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <h3 className="heading-md">Current Bills Timeline</h3>
+             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{filtered.length} matching</span>
+          </div>
+
+          {loading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', padding: '2rem', justifyContent: 'center' }}>
+              <Loader2 size={18} className="animate-spin" />
+              Fetching parliamentary records…
             </div>
-          ))}
-        </div>
+          )}
+          {error && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--error)', padding: '2rem' }}>
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: '1 1 200px' }}>
-            <Search size={13} style={{ position: 'absolute', left: '0.625rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input className="input" placeholder="Search bills, ministry, presenter…"
-              value={search} onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: '2rem' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '0.375rem' }}>
-            {FILTERS.map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={filter === f ? 'btn-primary' : 'btn-ghost'}
-                style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}>
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
+          {!loading && !error && (
+             <div>
+               {filtered.length === 0 && (
+                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>
+                   No bills match your current filters.
+                 </div>
+               )}
+               {filtered.map(bill => {
+                 const meta = STATUS_META[bill.status] ?? { cls: '', label: bill.status.toUpperCase() }
+                 return (
+                    <div key={bill.id} className="feed-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                          <div style={{ flex: '0 0 60px' }}>
+                             <span className={`chip ${meta.cls}`}>{meta.label}</span>
+                          </div>
+                          
+                          <div style={{ flex: 1 }}>
+                             {/* Title */}
+                             <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9375rem', lineHeight: 1.3, marginBottom: '0.2rem' }}>
+                               {bill.title}
+                             </div>
+                             {bill.title_nepali && (
+                               <div className="font-deva" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                 {bill.title_nepali}
+                               </div>
+                             )}
 
-        {/* Chamber filter */}
-        <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.75rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginRight: '0.25rem' }}>Chamber:</span>
-          {(['Both', 'HOR', 'NA'] as const).map(c => (
-            <button key={c} onClick={() => setChamber(c)}
-              className={chamber === c ? 'btn-primary' : 'btn-ghost'}
-              style={{ padding: '0.25rem 0.625rem', fontSize: '0.7rem' }}>
-              {c === 'Both'
-                ? `Both (${loading ? '…' : total})`
-                : c === 'HOR'
-                ? `🏛 HoR (${loading ? '…' : horCount})`
-                : `🏟 NA (${loading ? '…' : naCount})`}
-            </button>
-          ))}
-        </div>
+                             {/* Meta text */}
+                             {bill.summary && (
+                               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '0.5rem', maxWidth: '600px' }}>
+                                 {bill.summary}
+                               </div>
+                             )}
+                          </div>
+                       </div>
+                       
+                       <BillPipeline status={bill.status} />
 
-        {/* States */}
-        {loading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', padding: '2rem', justifyContent: 'center' }}>
-            <Loader2 size={18} className="animate-spin" />
-            Loading bills from parliament…
-          </div>
-        )}
-        {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--crimson)', padding: '1rem' }}>
-            <AlertCircle size={16} /> {error}
-          </div>
-        )}
-
-        {/* Bills list */}
-        {!loading && !error && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {filtered.length === 0 && (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>
-                No bills match your search.
-              </div>
-            )}
-            {filtered.map(bill => {
-              const meta = STATUS_META[bill.status] ?? { cls: 'chip-muted', label: bill.status.toUpperCase() }
-              return (
-                <div key={bill.id} className="card animate-fade-up" style={{ padding: '1rem 1.25rem' }}>
-                  {/* Header row */}
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <FileText size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--indigo)' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Chips + date */}
-                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
-                        <span className={`chip ${meta.cls}`}>{meta.label}</span>
-                        {/* Chamber badge */}
-                        <span className="chip" style={{
-                          background: bill.chamber === 'HOR' ? 'rgba(99,102,241,0.12)' : 'rgba(20,184,166,0.12)',
-                          color: bill.chamber === 'HOR' ? 'var(--indigo)' : '#14b8a6',
-                          fontWeight: 700, fontSize: '0.6rem',
-                        }}>
-                          {bill.chamber === 'HOR' ? '🏛 HoR' : '🏟 NA'}
-                        </span>
-                        {bill.registration_no && (
-                          <span className="chip chip-muted">Reg #{bill.registration_no}</span>
-                        )}
-                        {bill.session && (
-                          <span className="chip chip-muted">Session {bill.session}</span>
-                        )}
-                        {bill.governmental_type && (
-                          <span className="chip chip-muted" style={{ fontSize: '0.6rem' }}>
-                            {bill.governmental_type}
+                       {/* Action Row */}
+                       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)' }}>
+                             {bill.chamber === 'HOR' ? '🏛 HoR' : '🏟 NA'}
                           </span>
-                        )}
-                        {bill.original_amendment && (
-                          <span className="chip chip-muted" style={{ fontSize: '0.6rem' }}>
-                            {bill.original_amendment}
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                             {bill.registration_no && `Reg #${bill.registration_no} · `}
+                             {bill.session && `Session ${bill.session}`}
                           </span>
-                        )}
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                          <Calendar size={10} style={{ display: 'inline', marginRight: 3 }} />
-                          {bill.year_bs ?? bill.timeline_present ?? '—'}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9375rem', lineHeight: 1.3, marginBottom: '0.1rem' }}>
-                        {bill.title}
-                      </div>
-                      {bill.title_nepali && (
-                        <div className="font-deva" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                          {bill.title_nepali}
-                        </div>
-                      )}
-
-                      {/* Summary */}
-                      {bill.summary && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '0.25rem' }}>
-                          {bill.summary}
-                        </div>
-                      )}
-
-                      {/* Key points */}
-                      {bill.key_points && bill.key_points.length > 0 && (
-                        <ul style={{ margin: '0.25rem 0 0.25rem 1rem', padding: 0, fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                          {bill.key_points.slice(0, 3).map((pt, i) => (
-                            <li key={i}>{pt}</li>
-                          ))}
-                        </ul>
-                      )}
+                          
+                          {bill.presenter && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '1rem' }}>
+                              <Tag size={10} style={{ display: 'inline', marginRight: 3 }} />
+                              <span style={{ color: 'var(--text-secondary)' }}>{bill.presenter}</span>
+                            </span>
+                          )}
+                          
+                          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+                            {bill.pdf_url && (
+                              <a href={bill.pdf_url} target="_blank" rel="noopener noreferrer"
+                                style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'inherit', textDecoration: 'none' }}>
+                                <Download size={10} /> PDF
+                              </a>
+                            )}
+                            <a href={`/bills/${bill.id}`}
+                              style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--text)', textDecoration: 'none', fontWeight: 600 }}>
+                              Full Text <ChevronRight size={11} />
+                            </a>
+                          </div>
+                       </div>
                     </div>
-                  </div>
-
-                  {/* Pipeline */}
-                  <BillPipeline status={bill.status} />
-
-                  {/* Footer */}
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.625rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    {bill.presenter && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        <Tag size={10} style={{ display: 'inline', marginRight: 3 }} />
-                        <span style={{ color: 'var(--text-secondary)' }}>{bill.presenter}</span>
-                      </span>
-                    )}
-                    {(bill.ministry && !bill.presenter) && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        <Tag size={10} style={{ display: 'inline', marginRight: 3 }} />
-                        <span style={{ color: 'var(--text-secondary)' }}>{bill.ministry}</span>
-                      </span>
-                    )}
-                    {bill.pdf_url && (
-                      <a href={bill.pdf_url} target="_blank" rel="noopener noreferrer"
-                        className="btn-ghost"
-                        style={{ padding: '0.15rem 0.5rem', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Download size={10} /> PDF
-                      </a>
-                    )}
-                    {bill.source_url && (
-                      <a href={bill.source_url} target="_blank" rel="noopener noreferrer"
-                        className="btn-ghost"
-                        style={{ padding: '0.15rem 0.5rem', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <ExternalLink size={10} /> Parliament
-                      </a>
-                    )}
-                    <a href={`/bills/${bill.id}`}
-                      className="btn-ghost"
-                      style={{ padding: '0.15rem 0.5rem', fontSize: '0.7rem', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      Full Details <ChevronRight size={11} />
-                    </a>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                 )
+               })}
+             </div>
+          )}
+        </div>
       </div>
     </div>
   )
