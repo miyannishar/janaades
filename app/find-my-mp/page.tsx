@@ -165,7 +165,7 @@ export default function FindMyMPPage() {
         </div>
 
         {/* Summary stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div className="stats-grid-4" style={{ marginBottom: '1.5rem' }}>
           {[
             { label: 'Matched',   val: filtered.length },
             { label: 'Female',    val: female },
@@ -180,10 +180,10 @@ export default function FindMyMPPage() {
         </div>
         
         {/* Map + List two-column */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="map-grid">
           
           {/* List panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: 600 }}>
+          <div className="map-grid-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: 600 }}>
             {selected && (
               <div style={{ flexShrink: 0 }}>
                 <MPCard mp={selected} onClose={() => setSelected(null)} />
@@ -242,7 +242,7 @@ export default function FindMyMPPage() {
           </div>
 
           {/* Map */}
-          <div className="ledger-container" style={{ padding: 0, overflow: 'hidden', height: 600, position: 'sticky', top: '2rem' }}>
+          <div className="map-grid-map ledger-container" style={{ padding: 0, overflow: 'hidden', height: 600, position: 'sticky', top: '2rem' }}>
             {loading ? (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                 Loading map…

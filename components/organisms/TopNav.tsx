@@ -1,54 +1,96 @@
+'use client'
+
 import Link from 'next/link'
-import { LayoutDashboard, FileText, Users, Shield, Zap, Activity } from 'lucide-react'
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+
+const NAV_LINKS = [
+  { href: '/',               label: 'Ledger',         ai: false },
+  { href: '/bills',          label: 'Legislation',    ai: false },
+  { href: '/members',        label: 'Parliament',     ai: false },
+  { href: '/misconduct',     label: 'Accountability', ai: false },
+  { href: '/promises',       label: 'Watchdog',       ai: false },
+  { href: '/find-my-mp',     label: 'Find My MP',     ai: false },
+  { href: '/ai-intelligence',label: 'Agent Insights', ai: true  },
+  { href: '/ai-chat',        label: 'AI Chat',        ai: true  },
+]
 
 export default function TopNav() {
-  // Hardcoding active for now, could use usePathname
+  const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+
   return (
-    <header className="top-nav">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '3rem', height: '100%' }}>
-        {/* Brand */}
-        <Link href="/" style={{ textDecoration: 'none' }}>
-           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+    <>
+      <header className="top-nav">
+        <div className="top-nav-brand-links">
+          {/* Brand */}
+          <Link href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
               <span className="font-deva" style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)' }}>जनादेश</span>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Monitor</span>
-           </div>
-        </Link>
+            </div>
+          </Link>
 
-        {/* Navigation Links */}
-        <nav className="nav-links">
-          <Link href="/" className="nav-item">
-             Ledger
-          </Link>
-          <Link href="/bills" className="nav-item">
-             Legislation
-          </Link>
-          <Link href="/members" className="nav-item">
-             Parliament
-          </Link>
-          <Link href="/misconduct" className="nav-item">
-             Accountability
-          </Link>
-          <Link href="/promises" className="nav-item">
-             Watchdog
-          </Link>
-          <Link href="/find-my-mp" className="nav-item">
-             Find My MP
-          </Link>
-          <Link href="/ai-intelligence" className="nav-item" style={{ color: 'var(--rsp)' }}>
-             Agent Insights
-          </Link>
-          <Link href="/ai-chat" className="nav-item" style={{ color: 'var(--rsp)' }}>
-             AI Chat
-          </Link>
-        </nav>
-      </div>
+          {/* Desktop Navigation Links */}
+          <nav className="nav-links nav-links-desktop">
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`nav-item${pathname === link.href ? ' active' : ''}`}
+                style={link.ai ? { color: 'var(--rsp)' } : undefined}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-         <span className="chip chip-ok" style={{ background: 'transparent' }}>
-             <span className="dot dot-live" /> 
-             Live Session: Monsoon 2083
-         </span>
-      </div>
-    </header>
+        {/* Right: live status + hamburger */}
+        <div className="top-nav-right">
+          <span className="chip chip-ok nav-status-chip" style={{ background: 'transparent' }}>
+            <span className="dot dot-live" />
+            Live Session: Monsoon 2083
+          </span>
+          <button
+            className="nav-hamburger"
+            onClick={() => setOpen(o => !o)}
+            aria-label="Toggle menu"
+            aria-expanded={open}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Drawer */}
+      {open && (
+        <div className="mobile-nav-overlay" onClick={() => setOpen(false)}>
+          <nav className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <span className="font-deva" style={{ fontSize: '1.4rem', fontWeight: 700 }}>जनादेश</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Monitor</span>
+            </div>
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`mobile-nav-item${pathname === link.href ? ' active' : ''}`}
+                style={link.ai ? { color: 'var(--rsp)' } : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="mobile-nav-footer">
+              <span className="chip chip-ok" style={{ background: 'transparent' }}>
+                <span className="dot dot-live" /> Live Session: Monsoon 2083
+              </span>
+            </div>
+          </nav>
+        </div>
+      )}
+    </>
   )
 }

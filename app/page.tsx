@@ -110,7 +110,7 @@ export default function DashboardPage() {
         meta={format(new Date(), 'EEEE, MMMM do, yyyy')}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '3rem' }}>
+      <div className="dashboard-main-grid">
         {/* Left Column: Ledger Feed */}
         <div>
            <LedgerFeed />

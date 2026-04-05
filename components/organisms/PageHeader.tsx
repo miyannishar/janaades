@@ -11,13 +11,13 @@ export function PageHeader({
 }) {
   return (
     <header className="page-header">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div className="page-header-inner">
         <div>
           <div className="section-label" style={{ marginBottom: '0.5rem' }}>{label}</div>
           <h1 className="heading-xl">{title}</h1>
         </div>
         {(subtitle || meta) && (
-          <div style={{ textAlign: 'right', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+          <div className="page-header-meta">
             {subtitle && <div style={{ fontWeight: 600 }}>{subtitle}</div>}
             {meta && <div>{meta}</div>}
           </div>

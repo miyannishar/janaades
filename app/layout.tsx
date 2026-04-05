@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   keywords: ['Nepal parliament', 'civic portal', 'legislation tracking'],
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ne" suppressHydrationWarning>

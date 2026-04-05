@@ -146,7 +146,7 @@ export default function BillsPage() {
         meta="Pratinidhi Sabha & Rashtriya Sabha"
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 300px) 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="sidebar-grid">
         
         {/* Left Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

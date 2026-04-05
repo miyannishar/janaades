@@ -56,7 +56,7 @@ export default function PromisesPage() {
         meta={`${stats.pct}% Delivered`} 
       />
 
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div className="promises-filter-row" style={{ display: 'flex', gap: '1rem', marginTop: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
          <input 
             type="text" 
             placeholder="Search promises..." 
@@ -78,7 +78,7 @@ export default function PromisesPage() {
          </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 250px) 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="sidebar-grid">
         <div>
           <h3 className="heading-sm" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Categories</h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

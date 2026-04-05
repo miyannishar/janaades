@@ -112,7 +112,7 @@ export default function MembersPage() {
         meta="Source: Nepal House of Representatives 2082"
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 300px) 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="sidebar-grid">
         
         {/* Left Column: Stats & Filters */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

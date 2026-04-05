@@ -89,7 +89,7 @@ export default function AIChatPage() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)' }}>
+    <div className="page-container ai-chat-wrapper" style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)' }}>
       <div className="page-header" style={{ marginBottom: '1rem', flexShrink: 0 }}>
         <h1 className="page-title"><Bot style={{ marginRight: '0.5rem', display: 'inline', verticalAlign: 'bottom' }} /> AI Chat Assistant</h1>
         <p className="page-subtitle">Direct line to the Parliamentary Accountability Agent.</p>
