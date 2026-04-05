@@ -45,3 +45,26 @@ export async function fetchNewsArticles(limit = 20, offset = 0): Promise<Activit
   }
   return (data as Activity[]) ?? []
 }
+
+export type AIPost = {
+  id: string
+  title: string
+  content: string
+  posted: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function fetchAIPosts(limit = 5): Promise<AIPost[]> {
+  const { data, error } = await supabase
+    .from('ai_social_posts')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+    
+  if (error) {
+    console.error('fetchAIPosts:', error)
+    return []
+  }
+  return (data as AIPost[]) ?? []
+}

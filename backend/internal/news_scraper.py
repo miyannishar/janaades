@@ -223,7 +223,7 @@ def _article_exists(source_url: str) -> bool:
     return bool(res.data)
 
 
-def _upsert_article(data: dict) -> None:
+def _upsert_article(data: dict) -> str:
     db  = get_client()
     # Parse published_at into a proper ISO timestamp
     date_str = data.get("published_at")
@@ -247,9 +247,11 @@ def _upsert_article(data: dict) -> None:
         "image_url":   data.get("image_url"),
         "date":        date_iso,
         "priority":    "medium",
+        "embedding":   data.get("embedding"),
     }
     row = {k: v for k, v in row.items() if v is not None}
     db.table("activities").upsert(row, on_conflict="source_url").execute()
+    return row["id"]
 
 
 # ─────────────────────────────────────────────
@@ -307,10 +309,21 @@ async def run_news_scrape() -> dict:
                     if detail["image_url"] and not article.get("image_url"):
                         article["image_url"] = detail["image_url"]
                     article["published_at"] = detail.get("published_at")
+                    
+                    # Generate embedding
+                    from internal.ai import generate_embedding
+                    emb_text = f"{article.get('title', '')}\n{article.get('description', '')}"
+                    emb = await generate_embedding(emb_text)
+                    if emb:
+                        article["embedding"] = emb
 
-                    _upsert_article(article)
+                    inserted_id = _upsert_article(article)
                     logger.info(f"    ✓ Inserted: {article['title'][:60]}")
                     new_cnt += 1
+
+                    if inserted_id:
+                        from agent_system.jobs import run_news_job
+                        asyncio.create_task(run_news_job(inserted_id))
 
                     await asyncio.sleep(REQUEST_DELAY)
 

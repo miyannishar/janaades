@@ -34,6 +34,12 @@ export default function TopNav() {
           <Link href="/find-my-mp" className="nav-item">
              Find My MP
           </Link>
+          <Link href="/ai-intelligence" className="nav-item" style={{ color: 'var(--rsp)' }}>
+             Agent Insights
+          </Link>
+          <Link href="/ai-chat" className="nav-item" style={{ color: 'var(--rsp)' }}>
+             AI Chat
+          </Link>
         </nav>
       </div>
 

@@ -224,7 +224,7 @@ def _bill_exists(source_url: str) -> Optional[dict]:
     return res.data[0] if res.data else None
 
 
-def _upsert_bill(data: dict) -> None:
+def _upsert_bill(data: dict) -> Optional[int]:
     db  = get_client()
     row = {
         "title":              data.get("title"),
@@ -247,6 +247,8 @@ def _upsert_bill(data: dict) -> None:
         "key_points":         data.get("key_points"),
         "affected_groups":    data.get("affected_groups"),
         "concerns":           data.get("concerns"),
+        "opposition_analysis": data.get("opposition_analysis"),
+        "embedding":          data.get("embedding"),
         "ai_analysis_at":     data.get("ai_analysis_at"),
         # Timeline
         "timeline_distribution":   data.get("timeline_distribution"),
@@ -263,13 +265,14 @@ def _upsert_bill(data: dict) -> None:
     existing = data.get("_existing")
     if existing:
         row["scrape_count"] = (existing.get("scrape_count") or 0) + 1
-        (db.table("bills")
+        res = (db.table("bills")
            .update(row)
            .eq("source_url", data["source_url"])
            .execute())
     else:
         row["scrape_count"] = 1
-        db.table("bills").insert(row).execute()
+        res = db.table("bills").insert(row).execute()
+    return res.data[0]["id"] if res.data else None
 
 
 def _log_scrape(bills_found: int, new_bills: int, updated: int, errors: int,
@@ -389,21 +392,32 @@ async def _scrape_source(client: httpx.AsyncClient, source: Source) -> dict:
                         f"Ministry     : {bill.get('ministry', 'N/A')}\n"
                         f"Status       : {bill.get('parliament_status', 'N/A')}\n"
                         f"Source URL   : {bill.get('source_url', 'N/A')}\n"
-                        f"PDF URL      : {bill.get('pdf_url', 'N/A')}\n"
-                        f"== {ai_source_label.upper()} content below ==\n\n"
                     )
                     ai_data = await parse_and_analyze(meta_preamble + ai_source_text, source=ai_source_label)
                     for k, v in ai_data.items():
                         if v is not None and not bill.get(k):
                             bill[k] = v
                     bill["ai_analysis_at"] = datetime.now(timezone.utc).isoformat()
+                    
+                    # Generate semantic embedding
+                    from internal.ai import generate_embedding
+                    emb_text = f"{bill.get('title', '')}\n{bill.get('summary_en', '')}\n{bill.get('opposition_analysis', '')}"
+                    emb = await generate_embedding(emb_text)
+                    if emb:
+                        bill["embedding"] = emb
+                        
                     logger.info(f"    ↳ AI filled: {[k for k in ai_data if ai_data[k] is not None]}")
                 except Exception as ai_exc:
                     logger.warning(f"    ↳ AI failed: {ai_exc}")
 
-            _upsert_bill(bill)
+            inserted_id = _upsert_bill(bill)
             elapsed = time.monotonic() - bill_t0
             logger.info(f"    ✓ {'Updated' if existing else 'Inserted'} in {elapsed:.1f}s")
+            
+            if needs_ai and inserted_id:
+                from agent_system.jobs import run_bill_job
+                asyncio.create_task(run_bill_job(inserted_id))
+
 
             if existing:
                 updated_cnt += 1

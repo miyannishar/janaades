@@ -16,6 +16,7 @@ from router.bills import router as bills_router
 from router.scraper import router as scraper_router
 from router.ai import router as ai_router
 from router.activities import router as activities_router
+from router.adk_agent import router as adk_agent_router
 
 # ── Logging ─────────────────────────────────────────────────────
 logging.basicConfig(
@@ -66,6 +67,7 @@ app.include_router(bills_router,      prefix="/api")
 app.include_router(scraper_router,    prefix="/api")
 app.include_router(ai_router,         prefix="/api")
 app.include_router(activities_router, prefix="/api")
+app.include_router(adk_agent_router,  prefix="/api")
 
 
 # ── Health ───────────────────────────────────────────────────────

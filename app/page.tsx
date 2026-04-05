@@ -96,6 +96,7 @@ function LedgerFeed() {
   )
 }
 
+
 export default function DashboardPage() {
   const female = REAL_MPs.filter(m => m.gender === 'Female').length
   const total = 275

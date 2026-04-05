@@ -31,6 +31,18 @@ async def _facebook_scrape_job() -> None:
     await run_facebook_scrape()
 
 
+async def _bill_accountability_job() -> None:
+    from agent_system.jobs import run_bill_job
+    logger.info("🤖 Scheduled bill accountability job triggered")
+    await run_bill_job()
+
+
+async def _news_accountability_job() -> None:
+    from agent_system.jobs import run_news_job
+    logger.info("🤖 Scheduled news accountability job triggered")
+    await run_news_job()
+
+
 def start_scheduler() -> None:
     global _scheduler
     _scheduler = AsyncIOScheduler()
@@ -73,12 +85,28 @@ def start_scheduler() -> None:
         trigger=CronTrigger(year="2099"),
     )
 
+    # ── AI Accountability: 2× daily at 03:30 + 15:30 UTC (≈9:15am + 9:15pm NPT) ──
+    # Runs AFTER the scrape jobs so fresh data is already in the DB.
+    _scheduler.add_job(
+        _bill_accountability_job,
+        CronTrigger(hour="3,15", minute=30, timezone="UTC"),
+        id="ai_bill_accountability",
+        replace_existing=True,
+    )
+    _scheduler.add_job(
+        _news_accountability_job,
+        CronTrigger(hour="3,15", minute=45, timezone="UTC"),
+        id="ai_news_accountability",
+        replace_existing=True,
+    )
+
     _scheduler.start()
     logger.info(
         "Scheduler started — "
         f"bills @ {settings.scrape_schedule_hour:02d}:00 UTC daily | "
         f"news @ {settings.news_scrape_hours}:05 UTC | "
-        "facebook @ 1,4,7,10,13,16,19,22:10 UTC"
+        "facebook @ 1,4,7,10,13,16,19,22:10 UTC | "
+        "AI accountability @ 03:30 + 15:30 UTC (bills) and 03:45 + 15:45 UTC (news)"
     )
 
 

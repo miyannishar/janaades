@@ -94,7 +94,8 @@ parliament website — treat those as authoritative ground truth. Below that is 
   "summary_ne":       "same summary in Nepali (Devanagari script)",
   "key_points":       ["bullet 1 (English)", "bullet 2", "bullet 3"],
   "affected_groups":  ["group 1", "group 2"],
-  "concerns":         ["potential concern 1", "potential concern 2"]
+  "concerns":         ["potential concern 1", "potential concern 2"],
+  "opposition_analysis": "An extensive adversarial analysis finding contradictions, hidden impacts, who benefits unfairly, and questioning alternative policies."
 }
 
 Rules:
@@ -150,6 +151,29 @@ async def parse_and_analyze(text: str, source: str = "page") -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         logger.error(f"AI returned invalid JSON: {exc}")
         raise ValueError(str(exc)) from exc
+
+
+# ─────────────────────────────────────────────────────────────
+# Embeddings 
+# ─────────────────────────────────────────────────────────────
+
+async def generate_embedding(text: str) -> list[float]:
+    """Generate a 1536-dimensional embedding via OpenAI."""
+    try:
+        client = _get_client()
+        # Ensure we don't pass massively huge text to embeddings
+        safe_text = text.replace('\n', ' ')[:8192]
+        if not safe_text.strip():
+            return []
+
+        resp = await client.embeddings.create(
+            input=[safe_text],
+            model="text-embedding-3-small"
+        )
+        return resp.data[0].embedding
+    except Exception as exc:
+        logger.error(f"OpenAI embedding error: {exc}")
+        return []
 
 
 # ─────────────────────────────────────────────────────────────
